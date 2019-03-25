@@ -1,10 +1,19 @@
 
-# var arDrone = require('ar-drone');
-# var fs = require('fs');
-# var keypress = require('keypress');
-# var kalman = require('./kalman');
+import ps_drone
+import time
 
-# var client = arDrone.createClient();
+
+drone = ps_drone.Drone()
+drone.startup()           # Connects to the drone and starts subprocesses
+drone.reset()
+while (drone.getBattery()[0] == -1):   time.sleep(0.1) # Wait until drone has done its reset
+print "Battery: "+str(drone.getBattery()[0])+"%  "+str(drone.getBattery()[1])	# Gives a battery-status
+drone.useDemoMode(False) 
+drone.getNDpackage(["demo","altitude"]) 
+time.sleep(1.0)
+
+
+#initialization
 # var r = [];
 # var t = [];
 # var r_filt = [];
@@ -40,6 +49,8 @@
 # //1 -> starting EF from filtered data
 
 # //Loop
+
+drone.takeoff()
 # client.takeoff(function() {
 
 # // listen for the "keypress" event 
