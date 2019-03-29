@@ -254,13 +254,10 @@ drone.takeoff()
 
 # }
 
-# function ComputeVelocity(r1,r2,t1,t2) {
-# 	if (t2 === t1) {
-# 		return 0;
-# 	}
-
-# 	return (r2-r1)/(t2-t1);
-# }
+def ComputeVelocity(r1,r2,t1,t2):
+    if (t2 == t1):
+ 	    return 0
+ 	return (r2-r1)/(t2-t1)
 
 def ComputeTau(r,v):
     if(v==0.0):
