@@ -25,29 +25,16 @@ a_need = []
 v_need = []
 cmnd = []
 marker = []
-<<<<<<< HEAD
 header = []
 file_return = []
 stage = 'up'
 timer = 'unset'
 
 # //Parameters//
-filename = 'recentNOBuff.txt'
-start_height = 3.0
-start_height = 2.0
-=======
-# var header = [];
-# var file_return = [];
-# var stage = 'up';
-# var timer = 'unset';
-
-# //Parameters//
 
 filename_readable = "recentNOBuffReadable.txt"
 filename = "recentNOBuff.csv"
 start_height = 3.0
-# var start_height = 2.0;
->>>>>>> 7333cc493e282ab4d77b76e8dce7639b730a85a4
 stop_height = 0.4
 start_point = 12
 v0 = -0.4
