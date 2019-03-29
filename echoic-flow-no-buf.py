@@ -7,7 +7,8 @@ import math
 drone = ps_drone.Drone()
 drone.startup()           # Connects to the drone and starts subprocesses
 drone.reset()
-while (drone.getBattery()[0] == -1):   time.sleep(0.1) # Wait until drone has done its reset
+while (drone.getBattery()[0] == -1):   
+    time.sleep(0.1) # Wait until drone has done its reset
 print "Battery: "+str(drone.getBattery()[0])+"%  "+str(drone.getBattery()[1])	# Gives a battery-status
 drone.useDemoMode(False) 
 drone.getNDpackage(["demo","altitude"]) 
@@ -15,31 +16,30 @@ time.sleep(1.0)
 
 
 #initialization
-# var r = [];
-# var t = [];
-# var r_filt = [];
-# var v = [];
-# var tau = [];
-# var a_need = [];
-# var v_need = [];
-# var cmnd = [];
-# var marker = [];
-# var header = [];
-# var file_return = [];
-# var stage = 'up';
-# var timer = 'unset';
+r = []
+t = []
+r_filt = []
+v = []
+tau = []
+a_need = []
+v_need = []
+cmnd = []
+marker = []
+header = []
+file_return = []
+stage = 'up'
+timer = 'unset'
 
 # //Parameters//
-
-# var filename = "recentNOBuff.txt";
-# var start_height = 3.0;
-# var start_height = 2.0;
-# var stop_height = 0.4;
-# var start_point = 12;
-# var v0 = -0.4;
-# var tau_dot = 0.75;
-# var buf_size = 1;
-# var order = 1;
+filename = 'recentNOBuff.txt'
+start_height = 3.0
+start_height = 2.0
+stop_height = 0.4
+start_point = 12
+v0 = -0.4
+tau_dot = 0.75
+buf_size = 1
+order = 1
 
 # // Velocity Equation //
 
@@ -76,148 +76,124 @@ drone.takeoff()
 # 	process.stdin.resume();
 
 # 	// start listening for altitude information
-# 	client.on('navdata', function (data) {
+stage = 'up'
+while !drone.NavData["demo"][0][2]:
+    current_range = drone.NavData["demo"][3]-stop_height
+    current_time = time.time()
+    if stage == 'up':
+        FlyToHeight(current_range, current_time)
+    elif stage == 'pause':
+        Pause(current_range, current_time)
+    elif stage == 'dec':
+        StartDecent(current_range,current_time)
+    elif stage == 'buf':
+ 	    FillBuffer(current_range,current_time)
+    elif stage == 'ef':
+        EchoicFlow(current_range,current_time)
+    elif stage == 'stop':
+        LandSave(current_range,current_time)
 
-# 		if(data.demo.altitude) {
-
-# 			current_range = data.demo.altitude-stop_height;
-# 			current_time = Date.now()/1000;
-
-# 			switch(stage) {
-
-# 				case 'up':
-# 					FlyToHeight(current_range,current_time);
-# 					break;
-# 				case 'pause':
-# 					Pause(current_range,current_time);
-# 					break;
-# 				case 'dec':
-# 					StartDecent(current_range,current_time);
-# 					break;
-# 				case 'buf':
-# 					FillBuffer(current_range,current_time);
-# 					break;
-# 				case 'ef':
-# 					EchoicFlow(current_range,current_time);
-# 					break;
-# 				case 'stop':
-# 					LandSave(current_range,current_time);
-# 					break;
-# 			}
-# 		}
-
-# 	});
-
-# });
 
 # //Functions
-# function FlyToHeight(current_range,current_time) {
+ def FlyToHeight(current_range,current_time):
+	if(current_range <= start_height-stop_height):
+		drone.moveForward(0.05)
+		drone.moveUp(0.5)
+    else:
+		stage = 'pause'
 
-# 	if(current_range <= start_height-stop_height) {
-# 		client.front(0.05);
-# 		client.up(0.5);
-# 	} else {
-# 		stage = 'pause';
-# 	}
-# }
+def Pause(current_range,current_time):
 
-# function Pause(current_range,current_time) {
+	#stop the drone and wait
+	drone.stop()
 
-# 	//stop the drone and wait
-# 	client.stop();
+	if (timer == 'unset') {
+        time.sleep(2.5)
+		stage = 'dec'
+		timer = 'set'
 
-# 	if (timer === 'unset') {
-# 		setTimeout(function(){stage = 'dec';},2500);
-# 		timer = 'set';
-# 	}
-# }
 
-# function StartDecent(current_range,current_time) {
-# 	//save initial range and time
-# 	r.push(current_range);
-# 	t.push(current_time);
-# 	r_filt.push(current_range);
-# 	v.push(0.0);
-# 	tau.push(0.0);
-# 	a_need.push(0.0);
-# 	v_need.push(0.0);
-# 	cmnd.push(GetMotorCommand(v0));
-# 	marker.push(0.0);
+def StartDecent(current_range,current_time):
+	#//save initial range and time
+	r.append(current_range)
+	t.append(current_time)
+	r_filt.append(current_range)
+	v.append(0.0)
+	tau.append(0.0)
+	a_need.append(0.0)
+	v_need.append(0.0)
+	cmnd.append(GetMotorCommand(v0))
+	marker.append(0.0)
 	
 
-# 	//begin decent at initial velocity
-# 	client.down(GetMotorCommand(v0));
+	//begin decent at initial velocity
+	drone.moveDown(GetMotorCommand(v0))
 	
-# 	//change stage to start controlling decent
-# 	stage = 'buf';
-# }
+	//change stage to start controlling decent
+	stage = 'buf'
 
-# function FillBuffer(current_range,current_time) {
+def FillBuffer(current_range,current_time):
 # 	//save data
-# 	r.push(current_range);
-# 	t.push(current_time);
+	r.push(current_range)
+	t.push(current_time)
 	
-# 	//what is the current sample?
-# 	var cur = r.length-1;
-# 	var prev = r.length-2;
+	#//what is the current sample?
+	cur = len(r)-1
+	prev = len(r)-2
 
-# 	//save the rest of the data
-# 	r_filt.push(current_range);
-# 	v.push(ComputeVelocity(r_filt[prev],r_filt[cur],t[prev],t[cur]));
-# 	tau.push(ComputeTau(r[cur],v[cur]));
-# 	a_need.push(0.0);
-# 	v_need.push(0.0);
-# 	cmnd.push(GetMotorCommand(v0));
-# 	marker.push(0.0);
+	#//save the rest of the data
+	r_filt.append(current_range)
+	v.append(ComputeVelocity(r_filt[prev],r_filt[cur],t[prev],t[cur]))
+	tau.append(ComputeTau(r[cur],v[cur]))
+	a_need.append(0.0)
+	v_need.append(0.0)
+	cmnd.append(GetMotorCommand(v0))
+	marker.append(0.0)
 
-# 	//if we have reached the starting sample...begin EF!
-# 	if (r.length == start_point) {
-# 		stage = 'ef';
-# 	}
-# }
+	#//if we have reached the starting sample...begin EF!
+	if (r.length == start_point):
+		stage = 'ef'
 
-# function EchoicFlow(current_range,current_time) {
-# 	//save current range and time
-# 	r.push(current_range);
-# 	t.push(current_time);
+def EchoicFlow(current_range,current_time):
+	#//save current range and time
+	r.append(current_range)
+	t.append(current_time)
 
-# 	//what is the current sample?
-# 	var cur = r.length-1;
-# 	var prev = r.length-2;
+	#//what is the current sample?
+	cur = len(r)-1
+	prev = len(r)-2
 
-# 	//filter the range data
-# 	r_filt.push(current_range);
+	#//filter the range data
+	r_filt.append(current_range)
 
-# 	//compute current velocity
-# 	v.push(ComputeVelocity(r_filt[prev],r_filt[cur],t[prev],t[cur]));
+	#//compute current velocity
+	v.append(ComputeVelocity(r_filt[prev],r_filt[cur],t[prev],t[cur]))
 	
-# 	//compute current tau
-# 	tau.push(ComputeTau(r_filt[cur],v[cur]));
+	#//compute current tau
+	tau.append(ComputeTau(r_filt[cur],v[cur]))
 
-# 	//compute needed acceleration
-# 	a_need.push(v[cur]*(1-tau_dot)/tau[cur]);
+	#//compute needed acceleration
+	a_need.append(v[cur]*(1-tau_dot)/tau[cur])
 
-# 	//compute needed velocity
-# 	v_need.push(v[cur]+a_need[cur]*1/15);
+	#//compute needed velocity
+	v_need.append(v[cur]+a_need[cur]*1/15)
 	
-# 	//set speed to needed velocity
-# 	cmnd.push(GetMotorCommand(v_need[cur]));
-# 	client.down(cmnd[cur]);
+	#//set speed to needed velocity
+	cmnd.append(GetMotorCommand(v_need[cur]))
+	drone.moveDown(cmnd[cur])
 
-# 	//save the marker
-# 	marker.push(1);
+	#//save the marker
+	marker.append(1);
 
-# 	//check if desitnation is reached
-# 	if(current_range <= 0)
-# 	{
-# 		stage = 'stop';
+	#//check if desitnation is reached
+	if(current_range <= 0):
+		stage = 'stop'
 
-# 	}
-# }
 
-# function LandSave(current_range,current_time) {
-# 	client.land(Write);
-# }
+def LandSave(current_range,current_time):
+    drone.land()
+    Write()
+
 
 # function Write() {
 # 	header = [start_height,stop_height,start_point,v0,tau_dot,buf_size,order,r.length];
