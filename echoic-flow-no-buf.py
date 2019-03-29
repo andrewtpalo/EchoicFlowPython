@@ -10,9 +10,9 @@ drone.reset()
 while (drone.getBattery()[0] == -1):   
     time.sleep(0.1) # Wait until drone has done its reset
 print "Battery: "+str(drone.getBattery()[0])+"%  "+str(drone.getBattery()[1])	# Gives a battery-status
-drone.useDemoMode(False) 
+drone.useDemoMode(True) 
 drone.getNDpackage(["demo","altitude"]) 
-time.sleep(1.0)
+#time.sleep(1.0)
 
 
 #initialization
@@ -27,14 +27,14 @@ cmnd = []
 marker = []
 header = []
 file_return = []
-stage = 'up'
-timer = 'unset'
+stage = "up"
+timer = "unset"
 
 # //Parameters//
 
 filename_readable = "recentNOBuffReadable.txt"
 filename = "recentNOBuff.csv"
-start_height = 3.0
+start_height = 1.0
 stop_height = 0.4
 start_point = 12
 v0 = -0.4
@@ -53,6 +53,8 @@ order = 1
 # //Loop
 
 drone.takeoff()
+while (drone.NavData["demo"][0][2]):
+	time.sleep(0.1)
 # client.takeoff(function() {
 
 
@@ -77,39 +79,24 @@ drone.takeoff()
 # 	process.stdin.resume();
 
 # 	// start listening for altitude information
-stage = 'up'
-while !drone.NavData["demo"][0][2]:
-    current_range = drone.NavData["demo"][3]-stop_height
-    current_time = time.time()
-    if stage == 'up':
-        FlyToHeight(current_range, current_time)
-    elif stage == 'pause':
-        Pause(current_range, current_time)
-    elif stage == 'dec':
-        StartDecent(current_range,current_time)
-    elif stage == 'buf':
- 	    FillBuffer(current_range,current_time)
-    elif stage == 'ef':
-        EchoicFlow(current_range,current_time)
-    elif stage == 'stop':
-        LandSave(current_range,current_time)
 
 
 # //Functions
- def FlyToHeight(current_range,current_time):
+def FlyToHeight(current_range,current_time):
+	print"up"
 	if(current_range <= start_height-stop_height):
 		drone.moveForward(0.05)
 		drone.moveUp(0.5)
-    else:
+	else:
 		stage = 'pause'
 
 def Pause(current_range,current_time):
-
+	print"Pause"
 	#stop the drone and wait
 	drone.stop()
 
-	if (timer == 'unset') {
-        time.sleep(2.5)
+	if (timer == 'unset'):
+		time.sleep(2.5)
 		stage = 'dec'
 		timer = 'set'
 
@@ -127,10 +114,10 @@ def StartDecent(current_range,current_time):
 	marker.append(0.0)
 	
 
-	//begin decent at initial velocity
+	#//begin decent at initial velocity
 	drone.moveDown(GetMotorCommand(v0))
 	
-	//change stage to start controlling decent
+	#//change stage to start controlling decent
 	stage = 'buf'
 
 def FillBuffer(current_range,current_time):
@@ -184,7 +171,7 @@ def EchoicFlow(current_range,current_time):
 	drone.moveDown(cmnd[cur])
 
 	#//save the marker
-	marker.append(1);
+	marker.append(1)
 
 	#//check if desitnation is reached
 	if(current_range <= 0):
@@ -192,26 +179,27 @@ def EchoicFlow(current_range,current_time):
 
 
 def LandSave(current_range,current_time):
-    drone.land()
-    Write()
+	drone.land()
+	print"WRITING"
+	Write()
 
 
 def Write():
-    f = open(filename_readable, "w")
+	f = open(filename_readable, "w")
 	header = "start_height = {}\nstop_height = {}\nstart_point = {}\nv0 = {}\ntau_dot = {}\nbuf_size = {}\norder = {}\nr.length = {}\n\n".format(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, len(r))
 	f.Write(header)
-    f.write("r\tt\tr_filt\tv\ttau\tv_need\ta_need\tcmnd\tmarker\n")
-    for index in range(0, len(r)):
-        newLine = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index],marker[index])
-        f.write(newLine)
-    f.close()
+	f.write("r\tt\tr_filt\tv\ttau\tv_need\ta_need\tcmnd\tmarker\n")
+	for index in range(0, len(r)):
+		newLine = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index],marker[index])
+		f.write(newLine)
+	f.close()
 
-    g = open(filename, "w")
-    g.write("r,t,r_filt,v,tau,v_need,a_need,cmnd,marker\n")
-    for index in range(0, len(r)):
-        newLine = "{},{},{},{},{},{},{},{},{}\n".format(r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index],marker[index])
-        g.write(newLine)
-    g.close
+	g = open(filename, "w")
+	g.write("r,t,r_filt,v,tau,v_need,a_need,cmnd,marker\n")
+	for index in range(0, len(r)):
+		newLine = "{},{},{},{},{},{},{},{},{}\n".format(r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index],marker[index])
+		g.write(newLine)
+	g.close
 
 
 # function Exit() {
@@ -233,11 +221,30 @@ def GetMotorCommand(velocity):
 		return command
 
 def ComputeVelocity(r1,r2,t1,t2):
-    if (t2 == t1):
- 	    return 0
- 	return (r2-r1)/(t2-t1)
+	if (t2 == t1):
+		return 0
+	return ((r2-r1)/(t2-t1))
 
 def ComputeTau(r,v):
-    if(v==0.0):
-        v = -0.001
-    return r/v
+	if(v==0.0):
+		v = -0.001
+	return r/v
+
+
+while not drone.NavData["demo"][0][2]:
+	print"{}".format(drone.NavData["demo"][0][2])
+	current_range = (drone.NavData["demo"][3]/100)-stop_height
+	current_time = time.time()
+	if stage == 'up':
+		FlyToHeight(current_range, current_time)
+	elif stage == 'pause':
+		Pause(current_range, current_time)
+	elif stage == 'dec':
+		StartDecent(current_range,current_time)
+	elif stage == 'buf':
+		FillBuffer(current_range,current_time)
+	elif stage == 'ef':
+		EchoicFlow(current_range,current_time)
+	elif stage == 'stop':
+		print"stop"
+		LandSave(current_range,current_time)
