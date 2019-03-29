@@ -262,11 +262,7 @@ drone.takeoff()
 # 	return (r2-r1)/(t2-t1);
 # }
 
-# function ComputeTau(r,v) {
-
-# 	if(v===0.0){
-# 		v = -0.001;
-# 	}
-
-# 	return r/v;
-# }
+def ComputeTau(r,v):
+    if(v==0.0):
+        v = -0.001
+    return r/v
