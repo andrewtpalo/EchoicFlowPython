@@ -1,6 +1,7 @@
 
 import ps_drone
 import time
+import math
 
 
 drone = ps_drone.Drone()
@@ -238,21 +239,16 @@ drone.takeoff()
 	
 # }
 
-# function GetMotorCommand(velocity) {
+def GetMotorCommand(velocity):
 
-# 	var command = Math.round(2.644*(Math.sqrt(0.749-velocity)-0.868)*1000)/1000
+	command = round(2.644*(math.sqrt(0.749-velocity)-0.868)*1000)/1000
 
-# 	if (command <= 0) {
-# 		return 0.01;
-# 	} 
-# 	else if (command >= 1) {
-# 		return 1;
-# 	}
-# 	else {
-# 		return command;
-# 	}
-
-# }
+	if (command <= 0):
+		return 0.01
+	elif (command >= 1):
+		return 1
+	else:
+		return command
 
 def ComputeVelocity(r1,r2,t1,t2):
     if (t2 == t1):
