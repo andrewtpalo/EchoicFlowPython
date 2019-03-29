@@ -25,6 +25,7 @@ a_need = []
 v_need = []
 cmnd = []
 marker = []
+<<<<<<< HEAD
 header = []
 file_return = []
 stage = 'up'
@@ -34,6 +35,19 @@ timer = 'unset'
 filename = 'recentNOBuff.txt'
 start_height = 3.0
 start_height = 2.0
+=======
+# var header = [];
+# var file_return = [];
+# var stage = 'up';
+# var timer = 'unset';
+
+# //Parameters//
+
+filename_readable = "recentNOBuffReadable.txt"
+filename = "recentNOBuff.csv"
+start_height = 3.0
+# var start_height = 2.0;
+>>>>>>> 7333cc493e282ab4d77b76e8dce7639b730a85a4
 stop_height = 0.4
 start_point = 12
 v0 = -0.4
@@ -195,18 +209,23 @@ def LandSave(current_range,current_time):
     Write()
 
 
-# function Write() {
-# 	header = [start_height,stop_height,start_point,v0,tau_dot,buf_size,order,r.length];
-# 	filereturn = [header,r,t,r_filt,v,tau,v_need,a_need,cmnd,marker];
-# 	fs.writeFile(filename,filereturn,function(err){
-# 		if(err){
-# 			return console.log(err);
-# 		}
+def Write():
+    f = open(filename_readable, "w")
+	header = "start_height = {}\nstop_height = {}\nstart_point = {}\nv0 = {}\ntau_dot = {}\nbuf_size = {}\norder = {}\nr.length = {}\n\n".format(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, len(r))
+	f.Write(header)
+    f.write("r\tt\tr_filt\tv\ttau\tv_need\ta_need\tcmnd\tmarker\n")
+    for index in range(0, len(r)):
+        newLine = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index],marker[index])
+        f.write(newLine)
+    f.close()
 
-# 		console.log("the file was saved...");
-# 		Exit(); 
-# 	});
-# }
+    g = open(filename, "w")
+    g.write("r,t,r_filt,v,tau,v_need,a_need,cmnd,marker\n")
+    for index in range(0, len(r)):
+        newLine = "{},{},{},{},{},{},{},{},{}\n".format(r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index],marker[index])
+        g.write(newLine)
+    g.close
+
 
 # function Exit() {
 
