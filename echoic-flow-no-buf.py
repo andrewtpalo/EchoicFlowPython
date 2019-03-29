@@ -15,15 +15,15 @@ time.sleep(1.0)
 
 
 #initialization
-# var r = [];
-# var t = [];
-# var r_filt = [];
-# var v = [];
-# var tau = [];
-# var a_need = [];
-# var v_need = [];
-# var cmnd = [];
-# var marker = [];
+r = []
+t = []
+r_filt = []
+v = []
+tau = []
+a_need = []
+v_need = []
+cmnd = []
+marker = []
 # var header = [];
 # var file_return = [];
 # var stage = 'up';
@@ -31,15 +31,16 @@ time.sleep(1.0)
 
 # //Parameters//
 
-# var filename = "recentNOBuff.txt";
-# var start_height = 3.0;
+filename_readable = "recentNOBuffReadable.txt"
+filename = "recentNOBuff.csv"
+start_height = 3.0
 # var start_height = 2.0;
-# var stop_height = 0.4;
-# var start_point = 12;
-# var v0 = -0.4;
-# var tau_dot = 0.75;
-# var buf_size = 1;
-# var order = 1;
+stop_height = 0.4
+start_point = 12
+v0 = -0.4
+tau_dot = 0.75
+buf_size = 1
+order = 1
 
 # // Velocity Equation //
 
@@ -219,18 +220,23 @@ drone.takeoff()
 # 	client.land(Write);
 # }
 
-# function Write() {
-# 	header = [start_height,stop_height,start_point,v0,tau_dot,buf_size,order,r.length];
-# 	filereturn = [header,r,t,r_filt,v,tau,v_need,a_need,cmnd,marker];
-# 	fs.writeFile(filename,filereturn,function(err){
-# 		if(err){
-# 			return console.log(err);
-# 		}
+def Write():
+    f = open(filename_readable, "w")
+	header = "start_height = {}\nstop_height = {}\nstart_point = {}\nv0 = {}\ntau_dot = {}\nbuf_size = {}\norder = {}\nr.length = {}\n\n".format(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, len(r))
+	f.Write(header)
+    f.write("r\tt\tr_filt\tv\ttau\tv_need\ta_need\tcmnd\tmarker\n")
+    for index in range(0, len(r)):
+        newLine = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index],marker[index])
+        f.write(newLine)
+    f.close()
 
-# 		console.log("the file was saved...");
-# 		Exit(); 
-# 	});
-# }
+    g = open(filename, "w")
+    g.write("r,t,r_filt,v,tau,v_need,a_need,cmnd,marker\n")
+    for index in range(0, len(r)):
+        newLine = "{},{},{},{},{},{},{},{},{}\n".format(r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index],marker[index])
+        g.write(newLine)
+    g.close
+
 
 # function Exit() {
 
