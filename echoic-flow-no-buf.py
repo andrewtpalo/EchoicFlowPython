@@ -34,7 +34,7 @@ timer = "unset"
 
 filename_readable = "recentNOBuffReadable.txt"
 filename = "recentNOBuff.csv"
-start_height = 1.0
+start_height = 2.0
 stop_height = 0.4
 start_point = 12
 v0 = -0.4
@@ -82,9 +82,13 @@ while (drone.NavData["demo"][0][2]):
 
 
 # //Functions
+
 def FlyToHeight(current_range,current_time):
 	print"up"
-	if(current_range <= start_height-stop_height):
+	objHeight = start_height-stop_height
+	newline = "curr range = {}	objective height = {}\n".format(current_range, objHeight)
+	f.write(newline)
+	if(current_range < objHeight):
 		drone.moveForward(0.05)
 		drone.moveUp(0.5)
 	else:
@@ -230,8 +234,10 @@ def ComputeTau(r,v):
 		v = -0.001
 	return r/v
 
-
-while not drone.NavData["demo"][0][2]:
+print"{}".format(drone.NavData["demo"][0][2])
+f = open("BigData.txt", "w")
+while not stage == "stop":
+	print stage
 	current_range = (drone.NavData["demo"][3]/100)-stop_height
 	current_time = time.time()
 	if stage == 'up':
@@ -248,3 +254,4 @@ while not drone.NavData["demo"][0][2]:
 	elif stage == 'stop':
 		print"stop"
 		LandSave(current_range,current_time)
+f.close
