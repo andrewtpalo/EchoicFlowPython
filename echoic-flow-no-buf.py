@@ -232,11 +232,11 @@ def ComputeTau(r,v):
 
 
 while not drone.NavData["demo"][0][2]:
-	print"{}".format(drone.NavData["demo"][0][2])
 	current_range = (drone.NavData["demo"][3]/100)-stop_height
 	current_time = time.time()
 	if stage == 'up':
 		FlyToHeight(current_range, current_time)
+		print"{}".format(drone.NavData["demo"][0][2])
 	elif stage == 'pause':
 		Pause(current_range, current_time)
 	elif stage == 'dec':
