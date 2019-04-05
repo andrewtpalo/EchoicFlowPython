@@ -26,9 +26,8 @@ kf.F = numpy.array([[1.,1.],
 kf.H = numpy.array([[1.,0.]])    # Measurement function
 kf.P *= 1000.                 # covariance matrix
 kf.R = 5                      # state uncertainty
-kf.Q = numpy.array([[.25*dt**4, 
-                    .5*dt**3]])
-           [ .5*dt**3,    dt**2]]
+kf.Q = numpy.array([[.25*dt**4, .5*dt**3]],
+                    [[ .5*dt**3,    dt**2]])
 
 #initialization
 r = []
@@ -132,7 +131,7 @@ def StartDecent(current_range,current_time):
 	tau.append(0.0)
 	a_need.append(0.0)
 	v_need.append(0.0)
-	cmnd.append(GetMotorCommand(v0))
+	cmnd.append(-1*GetMotorCommand(v0))
 	marker.append(0.0)
 	
 
@@ -261,13 +260,15 @@ def ComputeTau(r,v):
 	return r/v
 
 print"{}".format(drone.NavData["demo"][0][2])
-f = open("BigData", "w")
+f = open("BigData.txt", "w")
 header = "start_height = {}\nstop_height = {}\nstart_point = {}\nv0 = {}\ntau_dot = {}\nbuf_size = {}\norder = {}\nr.length = {}\n\n".format(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, len(r))
 f.Write(header)
 count = 0
 f.write("r\tt\tr_filt\tv\ttau\tv_need\ta_need\tcmnd\tmarker\n")
+ndc = drone.NavDataCount
 while not stage == "stop":
-	WriteContinuously(f, count)
+    while drone.NavDataCount == ndc: 
+        time.sleep(0.001)
 	current_range = (drone.NavData["demo"][3]/100)-stop_height
 	current_time = time.time()
 	if stage == 'up':
@@ -277,14 +278,20 @@ while not stage == "stop":
 		Pause(current_range, current_time)
 	elif stage == 'dec':
 		StartDecent(current_range,current_time)
+        WriteContinuously(f, count)
+        count = count+1
 	elif stage == 'buf':
 		FillBuffer(current_range,current_time)
+        WriteContinuously(f, count)
+        count = count+1
 	elif stage == 'ef':
 		EchoicFlow(current_range,current_time)
+        WriteContinuously(f, count)
+        count = count+1
 	elif stage == 'stop':
 		print"stop"
 		LandSave(current_range,current_time)
-	count = count+1
+    ndc = drone.NavDataCount
 f.close
 
 # function FillBuffer(current_range,current_time) {
