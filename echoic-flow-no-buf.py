@@ -88,7 +88,7 @@ def FlyToHeight(current_range,current_time):
 	global stage
 	objHeight = start_height-stop_height
 	if(current_range < objHeight):
-		drone.move(0,0,.5,0)
+		drone.move(0,-0.05,.5,0)
 	else:
 		stage = 'pause'
 
@@ -226,7 +226,7 @@ def LandSave(current_range,current_time):
 def Write():
 	f = open(filename_readable, "w")
 	header = "start_height = {}\nstop_height = {}\nstart_point = {}\nv0 = {}\ntau_dot = {}\nbuf_size = {}\norder = {}\nlen(r) = {}\n\n".format(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, len(r))
-	f.Write(header)
+	f.write(header)
 	f.write("r\tt\tr_filt\tv\ttau\tv_need\ta_need\tcmnd\tmarker\n")
 	for index in range(0, len(r)):
 		newLine = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index],marker[index])
@@ -284,7 +284,8 @@ f.write(header)
 count = 0
 f.write("stage\tr\tt\tr_filt\tv\ttau\tv_need\ta_need\tcmnd\tmarker\n")
 ndc = drone.NavDataCount
-while not stage == "stop":
+loop = True
+while loop:
 	while ndc == drone.NavDataCount:
 		time.sleep(0.001)
 	current_range = (drone.NavData["demo"][3]/100)-stop_height
@@ -306,7 +307,7 @@ while not stage == "stop":
 		WriteContinuously(f, count)
 		count = count+1
 	elif stage == 'stop':
-		print"stop"
 		LandSave(current_range,current_time)
+		loop = False
 	ndc = drone.NavDataCount
 f.close
