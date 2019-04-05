@@ -2,6 +2,7 @@
 import ps_drone
 import time
 import math
+import KalmanFilter
 
 
 drone = ps_drone.Drone()
@@ -85,6 +86,7 @@ drone.setSpeed(.4)
 # //Functions
 
 def FlyToHeight(current_range,current_time):
+	print"up"
 	global stage
 	objHeight = start_height-stop_height
 	if(current_range < objHeight):
@@ -99,12 +101,15 @@ def Pause(current_range,current_time):
 	drone.stop()
 
 	if (timer == 'unset'):
+		global stage
+		global timer
 		time.sleep(2.5)
 		stage = 'dec'
 		timer = 'set'
 
 
 def StartDecent(current_range,current_time):
+	global stage
 	#//save initial range and time
 	global stage
 	global r
@@ -235,7 +240,14 @@ def Write():
 	for index in range(0, len(r)):
 		newLine = "{},{},{},{},{},{},{},{},{}\n".format(r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index],marker[index])
 		g.write(newLine)
-	g.close
+	g.close()
+
+
+def WriteContinuously(f, index):
+	f.write("stage\tr\tt\tr_filt\tv\ttau\tv_need\ta_need\tcmnd\tmarker\n")
+	newLine = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(stage,r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index],marker[index])
+	f.write(newLine)
+
 
 
 # function Exit() {
@@ -272,7 +284,12 @@ def ComputeTau(r,v):
 
 print"{}".format(drone.NavData["demo"][0][2])
 f = open("BigData.txt", "w")
+header = "start_height = {}\nstop_height = {}\nstart_point = {}\nv0 = {}\ntau_dot = {}\nbuf_size = {}\norder = {}\nr.length = {}\n\n".format(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, len(r))
+f.Write(header)
+count = 0
+f.write("r\tt\tr_filt\tv\ttau\tv_need\ta_need\tcmnd\tmarker\n")
 while not stage == "stop":
+	WriteContinuously(f, count)
 	current_range = (drone.NavData["demo"][3]/100)-stop_height
 	current_time = time.time()
 	newline = "curr range = {}\n".format(current_range)
@@ -290,4 +307,5 @@ while not stage == "stop":
 	elif stage == 'stop':
 		print"stop"
 		LandSave(current_range,current_time)
+	count = count+1
 f.close
