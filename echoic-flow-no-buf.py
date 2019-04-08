@@ -2,6 +2,7 @@
 import ps_drone
 import time
 import math
+#from prettytable import PrettyTable
 
 
 drone = ps_drone.Drone()
@@ -224,7 +225,9 @@ def LandSave(current_range,current_time):
 
 
 def Write():
-	f = open(filename_readable, "w")
+    #x = PrettyTable()
+    #x.field_names = ["r","t","r_filt","v","tau","v_need","a_need","cmnd,marker"]
+    f = open(filename_readable, "w")
 	header = "start_height = {}\nstop_height = {}\nstart_point = {}\nv0 = {}\ntau_dot = {}\nbuf_size = {}\norder = {}\nlen(r) = {}\n\n".format(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, len(r))
 	f.write(header)
 	f.write("r\tt\tr_filt\tv\ttau\tv_need\ta_need\tcmnd\tmarker\n")
@@ -237,7 +240,9 @@ def Write():
 	g.write("r,t,r_filt,v,tau,v_need,a_need,cmnd,marker\n")
 	for index in range(0, len(r)):
 		newLine = "{},{},{},{},{},{},{},{},{}\n".format(r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index],marker[index])
+        #x.add_row([r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index],marker[index]])
 		g.write(newLine)
+    #g.write(x)
 	g.close()
 
 
