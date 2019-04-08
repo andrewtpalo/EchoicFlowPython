@@ -14,8 +14,7 @@ drone.getNDpackage(["demo","altitude"])
 altitude = []
 timeTrack = []
 drone.takeoff()
-while (drone.NavData["demo"][0][2]):
-	time.sleep(0.1)
+
 # client.takeoff(function() {
 drone.setSpeed(.4)
 start = time.time()
@@ -38,5 +37,5 @@ timeTrack = timeTrack - start
 plt.plot(timeTrack, altitude)
 plt.xlabel('time')
 plt.ylabel('altitude')
-plt.show()
+plt.show(block=False)
 
