@@ -12,10 +12,8 @@ print "Battery: "+str(drone.getBattery()[0])+"%  "+str(drone.getBattery()[1])	# 
 drone.useDemoMode(True) 
 drone.getNDpackage(["demo","altitude"]) 
 altitude = []
-time = []
+timetrack = []
 drone.takeoff()
-while (drone.NavData["demo"][0][2]):
-	time.sleep(0.1)
 # client.takeoff(function() {
 drone.setSpeed(.4)
 
@@ -24,14 +22,14 @@ loop = True
 while (drone.NavData["demo"][3]/100) < 2.5:
     drone.moveUp(command)
     altitude.append(drone.NavData["demo"][3]/100)
-    time.append(time.time())
+    timetrack.append(time.time())
 drone.stop()
 time.sleep(2.0)
 
 while (drone.NavData["demo"][3]/100) > 1.0:
     drone.moveDown(command)
     altitude.append(drone.NavData["demo"][3]/100)
-    time.append(time.time())
+    timetrack.append(time.time())
 drone.land()
 
 

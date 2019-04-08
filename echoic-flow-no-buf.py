@@ -3,6 +3,9 @@ import ps_drone
 import time
 import math
 from prettytable import PrettyTable
+import matplotlib.pyplot as plt
+import csv
+import pandas
 
 
 drone = ps_drone.Drone()
@@ -89,7 +92,7 @@ def FlyToHeight(current_range,current_time):
 	global stage
 	objHeight = start_height-stop_height
 	if(current_range < objHeight):
-		drone.move(0,-0.05,.5,0)
+		drone.move(0,0,.5,0)
 	else:
 		stage = 'pause'
 
@@ -225,24 +228,23 @@ def LandSave(current_range,current_time):
 
 
 def Write():
+	# Readable Table
 	x = PrettyTable()
 	x.field_names = ["r","t","r_filt","v","tau","v_need","a_need","cmnd,marker"]
 	f = open(filename_readable, "w")
 	header = "start_height = {}\nstop_height = {}\nstart_point = {}\nv0 = {}\ntau_dot = {}\nbuf_size = {}\norder = {}\nlen(r) = {}\n\n".format(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, len(r))
 	f.write(header)
-	f.write("r\tt\tr_filt\tv\ttau\tv_need\ta_need\tcmnd\tmarker\n")
 	for index in range(0, len(r)):
-		newLine = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index],marker[index])
-		f.write(newLine)
+		x.add_row([r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index]])
+	f.write(x.get_string())
 	f.close()
 
+	# CSV Data File
 	g = open(filename, "w")
-	#g.write("r,t,r_filt,v,tau,v_need,a_need,cmnd,marker\n")
+	g.write("r,t,r_filt,v,tau,v_need,a_need,cmnd,marker\n")
 	for index in range(0, len(r)):
-		#newLine = "{},{},{},{},{},{},{},{},{}\n".format(r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index],marker[index])
-		x.add_row([r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index],marker[index]])
-		#g.write(newLine)
-	g.write(x)
+		newLine = "{},{},{},{},{},{},{},{},{}\n".format(r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index],marker[index])
+		g.write(newLine)
 	g.close()
 
 
@@ -316,3 +318,18 @@ while loop:
 		loop = False
 	ndc = drone.NavDataCount
 f.close
+
+# Plotting data with MatPlotLib
+x = []
+y = []
+
+df = pandas.read_csv('recentNOBuff.csv')
+
+x=df["t"]
+y=df["r"]
+
+plt.plot(x,y, label='Range over Time')
+plt.xlabel('t')
+plt.ylabel('r')
+plt.title('Range over Time')
+plt.savefig("RvTPlot")
