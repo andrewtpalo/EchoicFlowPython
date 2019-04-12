@@ -292,11 +292,12 @@ count = 0
 f.write("stage\tr\tt\tr_filt\tv\ttau\tv_need\ta_need\tcmnd\tmarker\n")
 ndc = drone.NavDataCount
 loop = True
+startClock = time.time()
 while loop:
 	while ndc == drone.NavDataCount:
 		time.sleep(0.001)
 	current_range = (drone.NavData["demo"][3]/100)-stop_height
-	current_time = time.time()
+	current_time = time.time() - startClock
 	if stage == 'up':
 		FlyToHeight(current_range, current_time)
 	elif stage == 'pause':
