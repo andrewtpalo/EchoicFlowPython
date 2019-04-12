@@ -20,7 +20,7 @@ kf = KalmanFilter(xDimension=2, zDimension=1)
 kf.x = numpy.array([[2.0],
                      [-0.4]])       # initial state (location and velocity)
 
-kf.F = numpy.array([[1.,1.],
+kf.F = numpy.array([[1.,dt],
                      [0.,1.]])    # state transition matrix
 
 kf.H = numpy.array([[1.,0.]])    # Measurement function
@@ -151,8 +151,13 @@ def FillBuffer(current_range,current_time):
 	cur = len(r)-1
 	prev = len(r)-2
 
+	z = numpy.array([[current_range],
+                     [0]])  
+	kf.predict()
+	kf.update(z)
+
 	#//save the rest of the data
-	r_filt.append(current_range)
+	r_filt.append(kf.x)
 	v.append(ComputeVelocity(r_filt[prev],r_filt[cur],t[prev],t[cur]))
 	tau.append(ComputeTau(r[cur],v[cur]))
 	a_need.append(0.0)
@@ -173,10 +178,13 @@ def EchoicFlow(current_range,current_time):
 	#//what is the current sample?
 	cur = len(r)-1
 	prev = len(r)-2
-    z = 
+    z = numpy.array([[current_range],
+                     [0]])  
+	kf.predict()
+	kf.update(z)
 
 	#//filter the range data
-	r_filt.append(current_range)
+	r_filt.append(kf.x)
 
 	#//compute current velocity
 	v.append(ComputeVelocity(r_filt[prev],r_filt[cur],t[prev],t[cur]))
