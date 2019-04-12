@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
     "python.pythonPath": "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\Python36_64\\python.exe",
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true
+=======
+    "python.pythonPath": "/usr/bin/python2.6"
+>>>>>>> 23b7e5ef92377a8308e2542031caf64f3fd872da
 }

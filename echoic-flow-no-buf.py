@@ -284,19 +284,16 @@ def ComputeTau(r,v):
 		v = -0.001
 	return r/v
 
-print"{}".format(drone.NavData["demo"][0][2])
-f = open("BigData.txt", "w")
-header = "start_height = {}\nstop_height = {}\nstart_point = {}\nv0 = {}\ntau_dot = {}\nbuf_size = {}\norder = {}\nr.length = {}\n\n".format(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, len(r))
-f.write(header)
+
 count = 0
-f.write("stage\tr\tt\tr_filt\tv\ttau\tv_need\ta_need\tcmnd\tmarker\n")
 ndc = drone.NavDataCount
 loop = True
+startClock = time.time()
 while loop:
 	while ndc == drone.NavDataCount:
 		time.sleep(0.001)
 	current_range = (drone.NavData["demo"][3]/100)-stop_height
-	current_time = time.time()
+	current_time = time.time() - startClock
 	if stage == 'up':
 		FlyToHeight(current_range, current_time)
 	elif stage == 'pause':
@@ -317,19 +314,3 @@ while loop:
 		LandSave(current_range,current_time)
 		loop = False
 	ndc = drone.NavDataCount
-f.close
-
-# Plotting data with MatPlotLib
-x = []
-y = []
-
-df = pandas.read_csv('recentNOBuff.csv')
-
-x=df["t"]
-y=df["r"]
-
-plt.plot(x,y, label='Range over Time')
-plt.xlabel('t')
-plt.ylabel('r')
-plt.title('Range over Time')
-plt.savefig("RvTPlot")
