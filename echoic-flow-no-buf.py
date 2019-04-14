@@ -37,8 +37,8 @@ timer = "unset"
 
 filename_readable = "recentNOBuffReadable.txt"
 filename = "recentNOBuff.csv"
-start_height = 2.0
-stop_height = 0.4
+start_height = 1.0
+stop_height = 0.2
 start_point = 12
 v0 = 0.4
 tau_dot = 0.75
@@ -283,7 +283,7 @@ def ComputeTau(r,v):
 		v = -0.001
 	return r/v
 
-
+f = open("BigData.txt", "w")
 count = 0
 ndc = drone.NavDataCount
 loop = True
@@ -313,3 +313,4 @@ while loop:
 		LandSave(current_range,current_time)
 		loop = False
 	ndc = drone.NavDataCount
+f.close()
