@@ -1,7 +1,6 @@
 import ps_drone
 import time
 import math
-from prettytable import PrettyTable
 import matplotlib.pyplot as plt
 import csv
 import pandas
@@ -61,29 +60,6 @@ while (drone.NavData["demo"][0][2]):
 	time.sleep(0.1)
 # client.takeoff(function() {
 drone.setSpeed(.4)
-
-
-# 	// listen for the "keypress" event 
-# 	keypress(process.stdin);
-
-# 	process.stdin.on('keypress', function (ch, key) {
-
-# 	  //land the drone
-# 	  if (ch == 'l'){
-# 		client.removeAllListeners('navdata')
-# 		console.log('landing...');
-# 		client.land();
-# 	  }
-
-# 	  if (key && key.ctrl && key.name == 'l') {
-# 		Write();
-# 	  }
-# 	});
-
-# 	process.stdin.setRawMode(true);
-# 	process.stdin.resume();
-
-# 	// start listening for altitude information
 
 
 # //Functions
@@ -222,8 +198,21 @@ def EchoicFlow(current_range,current_time):
 
 def LandSave(current_range,current_time):
 	global stage
+	global r
+	global t
+	global r_filt
+	global v
+	global tau
+	global a_need
+	global v_need
+	global cmnd
+	global marker
+	global start_height
+	global stop_height
+	global start_point
+	global v0, tau_dot, buf_size, order
 	drone.land()
-	Write()
+	Write(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, r, t, r_filt, v, tau, v_need, a_need, cmnd, marker)
 
 def GetMotorCommand(velocity):
 	sq = math.sqrt(0.749-velocity)
@@ -247,7 +236,12 @@ def ComputeTau(r,v):
 		v = -0.001
 	return r/v
 
-f = open("BigData.txt", "w")
+def WriteContinuously(f, index):
+	newLine = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(stage,r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index],marker[index])
+	f.write(newLine)
+
+f = open("ContinuousData.txt", "w")
+f.write("stage\tr\tt\tr_filt\tv\ttau\tv_need\ta_need\tcmnd\tmarker\n")
 count = 0
 ndc = drone.NavDataCount
 loop = True
@@ -278,3 +272,5 @@ while loop:
 		loop = False
 	ndc = drone.NavDataCount
 f.close()
+
+flightgraph ("MostRecentData.csv", v0, tau_dot, r0)

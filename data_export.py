@@ -33,7 +33,7 @@ def flightgraph (filename, v0, tau_dot, r0):
     plt.savefig(fileName)
 
 # Records flight data in .txt and .csv in folder and a copy as MostRecentData.csv in root
-def Write():
+def Write(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, r, t, r_filt, v, tau, v_need, a_need, cmnd, marker):
     currentTime = datetime.datetime.now()
 
     # Readable Table
