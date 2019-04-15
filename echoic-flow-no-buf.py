@@ -5,6 +5,7 @@ from prettytable import PrettyTable
 import matplotlib.pyplot as plt
 import csv
 import pandas
+import data_export
 
 
 drone = ps_drone.Drone()
@@ -222,44 +223,7 @@ def EchoicFlow(current_range,current_time):
 def LandSave(current_range,current_time):
 	global stage
 	drone.land()
-	print"WRITING"
 	Write()
-
-
-def Write():
-	# Readable Table
-	x = PrettyTable()
-	x.field_names = ["r","t","r_filt","v","tau","v_need","a_need","cmnd,marker"]
-	f = open(filename_readable, "w")
-	header = "start_height = {}\nstop_height = {}\nstart_point = {}\nv0 = {}\ntau_dot = {}\nbuf_size = {}\norder = {}\nlen(r) = {}\n\n".format(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, len(r))
-	f.write(header)
-	for index in range(0, len(r)):
-		x.add_row([r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index]])
-	f.write(x.get_string())
-	f.close()
-
-	# CSV Data File
-	g = open(filename, "w")
-	g.write("r,t,r_filt,v,tau,v_need,a_need,cmnd,marker\n")
-	for index in range(0, len(r)):
-		newLine = "{},{},{},{},{},{},{},{},{}\n".format(r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index],marker[index])
-		g.write(newLine)
-	g.close()
-
-
-def WriteContinuously(f, index):
-	#f.write("stage\tr\tt\tr_filt\tv\ttau\tv_need\ta_need\tcmnd\tmarker\n")
-	newLine = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(stage,r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index],marker[index])
-	f.write(newLine)
-
-
-
-# function Exit() {
-
-# 	console.log('exiting...')
-# 	process.exit();
-	
-# }
 
 def GetMotorCommand(velocity):
 	sq = math.sqrt(0.749-velocity)
