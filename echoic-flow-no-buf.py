@@ -37,8 +37,8 @@ timer = "unset"
 
 filename_readable = "recentNOBuffReadable.txt"
 filename = "recentNOBuff.csv"
-start_height = 1.0
-stop_height = 0.2
+start_height = 1.6
+stop_height = 0.5
 start_point = 12
 v0 = 0.4
 tau_dot = 0.75
@@ -59,7 +59,6 @@ drone.takeoff()
 while (drone.NavData["demo"][0][2]):
 	time.sleep(0.1)
 # client.takeoff(function() {
-drone.setSpeed(.4)
 
 
 # //Functions
@@ -212,13 +211,14 @@ def LandSave(current_range,current_time):
 	global start_point
 	global v0, tau_dot, buf_size, order
 	drone.land()
-	Write(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, r, t, r_filt, v, tau, v_need, a_need, cmnd, marker)
+	data_export.writedata(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, r, t, r_filt, v, tau, v_need, a_need, cmnd, marker)
 
 def GetMotorCommand(velocity):
-	sq = math.sqrt(0.749-velocity)
-	rnd = round(2.644*(sq-0.868)*1000)
-	command = rnd/1000
+	# sq = math.sqrt(0.749-velocity)
+	# rnd = round(2.644*(sq-0.868)*1000)
+	# command = rnd/1000
 
+	command = velocity
 	if (command <= 0):
 		return 0.01
 	elif (command >= 1):
@@ -273,4 +273,6 @@ while loop:
 	ndc = drone.NavDataCount
 f.close()
 
-flightgraph ("MostRecentData.csv", v0, tau_dot, r0)
+r0 = start_height-stop_height
+v0flight = -1 * v0
+data_export.flightgraph ("MostRecentData.csv", v0flight, tau_dot, r0)
