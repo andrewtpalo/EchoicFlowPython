@@ -3,9 +3,22 @@ import time
 import math
 import matplotlib.pyplot as plt
 import csv
-import pandas
-import data_export
+import time
+import RPi.GPIO as GPIO
+import serial
+#import pandas
+#import data_export
 
+#The following program performs the following steps,
+#	1 Pause 20 seconds to allow disconnection from monitor
+#	2 Launch to static start height
+#	3 Pause for 5 seconds
+#	4 Approach object (flying backwards) to distance of 50cm at 10% speed
+#	5 Pause 2 seconds
+#	6 Land
+
+#Initial sleep
+time.sleep(20)
 
 drone = ps_drone.Drone()
 drone.startup()           # Connects to the drone and starts subprocesses
@@ -37,7 +50,7 @@ timer = "unset"
 
 filename_readable = "recentNOBuffReadable.txt"
 filename = "recentNOBuff.csv"
-start_height = 1.6
+start_height = 1.0
 stop_height = 0.5
 start_point = 12
 v0 = 0.4
@@ -211,7 +224,7 @@ def LandSave(current_range,current_time):
 	global start_point
 	global v0, tau_dot, buf_size, order
 	drone.land()
-	data_export.writedata(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, r, t, r_filt, v, tau, v_need, a_need, cmnd, marker)
+	#data_export.writedata(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, r, t, r_filt, v, tau, v_need, a_need, cmnd, marker)
 
 def GetMotorCommand(velocity):
 	# sq = math.sqrt(0.749-velocity)
@@ -240,39 +253,65 @@ def WriteContinuously(f, index):
 	newLine = "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(stage,r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index],marker[index])
 	f.write(newLine)
 
+#Approach target to specified distance in cm
+def approachTarget(targetdist):
+	GPIO.setmode(GPIO.BCM)
+	GPIO.setup(4, GPIO.OUT)
+	GPIO.output(4, GPIO.LOW)
+	f = open("ForwardData.txt","w+")
+	ser = serial.Serial(port="/dev/ttyS0", baudrate=9600)
+
+	GPIO.output(4, GPIO.HIGH)
+	time.sleep(0.00002)
+	GPIO.output(4, GPIO.LOW)
+	time.sleep(0.1)
+	serialOutput = ser.read(6)
+	currRange = int(serialOutput[1:])
+
+	while(currRange/10 > targetdist):
+		drone.move(0,-0.1,0,0)
+		time.sleep(0.1)
+		GPIO.output(4, GPIO.HIGH)
+		time.sleep(0.00002)
+		GPIO.output(4, GPIO.LOW)
+		time.sleep(0.1)
+		serialOutput = ser.read(6)
+		currRange = int(serialOutput[1:])
+	drone.stop()
+	ser.close()
+	f.close()
+	GPIO.cleanup()
+
 f = open("ContinuousData.txt", "w")
 f.write("stage\tr\tt\tr_filt\tv\ttau\tv_need\ta_need\tcmnd\tmarker\n")
 count = 0
 ndc = drone.NavDataCount
 loop = True
 startClock = time.time()
-while loop:
-	while ndc == drone.NavDataCount:
-		time.sleep(0.001)
-	current_range = (drone.NavData["demo"][3]/100)-stop_height
-	current_time = time.time() - startClock
-	if stage == 'up':
-		FlyToHeight(current_range, current_time)
-	elif stage == 'pause':
-		Pause(current_range, current_time)
-	elif stage == 'dec':
-		StartDecent(current_range,current_time)
-		WriteContinuously(f, count)
-		count = count+1
-	elif stage == 'buf':
-		FillBuffer(current_range,current_time)
-		WriteContinuously(f, count)
-		count = count+1
-	elif stage == 'ef':
-		EchoicFlow(current_range,current_time)
-		WriteContinuously(f, count)
-		count = count+1
-	elif stage == 'stop':
-		LandSave(current_range,current_time)
-		loop = False
-	ndc = drone.NavDataCount
-f.close()
 
-r0 = start_height-stop_height
-v0flight = -1 * v0
-data_export.flightgraph ("MostRecentData.csv", v0flight, tau_dot, r0)
+#Wait until drone is ready for commands
+while ndc == drone.NavDataCount:
+	time.sleep(0.001)
+current_range = (drone.NavData["demo"][3]/100)
+current_time = time.time() - startClock
+
+#Fly to starting height
+while(current_range < start_height):
+	drone.move(0,0,.3,0)
+	time.sleep(0.01)
+drone.stop()
+
+#Pause 5 seconds
+time.sleep(5)
+
+#Fly backwards to approach target
+approachTarget(50)
+
+#Pause 2 seconds
+time.sleep(2)
+
+#Land
+drone.land()
+
+ndc = drone.NavDataCount
+f.close()

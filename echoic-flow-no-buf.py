@@ -41,7 +41,7 @@ start_height = 1.6
 stop_height = 0.5
 start_point = 12
 v0 = 0.4
-tau_dot = 0.75
+tau_dot = 0.5
 buf_size = 1
 order = 1
 
@@ -59,7 +59,7 @@ drone.takeoff()
 while (drone.NavData["demo"][0][2]):
 	time.sleep(0.1)
 # client.takeoff(function() {
-
+drone.stop()
 
 # //Functions
 
@@ -229,7 +229,7 @@ def GetMotorCommand(velocity):
 def ComputeVelocity(r1,r2,t1,t2):
 	if (t2 == t1):
 		return 0
-	return ((r2-r1)/(t2-t1))
+	return -1*((r2-r1)/(t2-t1))
 
 def ComputeTau(r,v):
 	if(v==0.0):
@@ -254,6 +254,7 @@ while loop:
 	if stage == 'up':
 		FlyToHeight(current_range, current_time)
 	elif stage == 'pause':
+		drone.stop() 
 		Pause(current_range, current_time)
 	elif stage == 'dec':
 		StartDecent(current_range,current_time)

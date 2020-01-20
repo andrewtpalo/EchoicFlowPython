@@ -14,8 +14,8 @@ with open('RangefinderTestingData.csv') as csv_file:
 
 coefficient = np.polyfit(ActualDist, SensorDist, 1)
 slope, intercept, r, p, std_err = linregress(ActualDist, SensorDist)
-print(coefficient)
-print(r)
+print(slope)
+print(intercept)
 regression = np.poly1d(coefficient)
 plt.plot(ActualDist, SensorDist, 'bx', ActualDist, regression(ActualDist))
 plt.xlim(0, 1100)
