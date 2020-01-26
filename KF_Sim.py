@@ -57,15 +57,23 @@ while kf.x[0] > 0.4:
     actualV.append((noiseZ - actual[index-1])/(t[index] - t[index-1]))
     kfActualV.append(kf.x[1])
     sum = 0
+
+    if index >= 3:
+        i = 0
+        while i < 3:
+            sum += actual[index-i]
+            i+=1
+        movingAvg.append(sum/3)
+        sum = 0
+        i = 0
+        while i < 3:
+            sum += actualV[index-i]
+            i+=1
+        movingAvgV.append(sum/3)
+    else:
+        movingAvg.append(actual[index])
+        movingAvgV.append(actualV[index])
     index+=1
-    for x in actual:
-         sum += x
-    movingAvg.append(sum/index)
-    sum = 0
-    for x in actualV:
-         sum += x
-    movingAvgV.append(sum/index)
-    
     
 sum = 0
 i = 0
