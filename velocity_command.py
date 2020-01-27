@@ -3,9 +3,22 @@ import time
 import math
 import matplotlib.pyplot as plt
 import csv
-import pandas
-import data_export
+import time
+#import RPi.GPIO as GPIO
+#import serial
+#import pandas
+#import data_export
 
+#The following program performs the following steps,
+#	1 Pause 20 seconds to allow disconnection from monitor
+#	2 Launch to static start height
+#	3 Pause for 5 seconds
+#	4 Approach object (flying backwards) to distance of 50cm at 10% speed
+#	5 Pause 2 seconds
+#	6 Land
+
+#Initial sleep
+time.sleep(20)
 
 drone = ps_drone.Drone()
 drone.startup()           # Connects to the drone and starts subprocesses
@@ -37,12 +50,12 @@ timer = "unset"
 
 filename_readable = "recentNOBuffReadable.txt"
 filename = "recentNOBuff.csv"
-start_height = 3
-stop_height = 0.4
+start_height = 2.0
+stop_height = 0.5
 start_point = 12
-v0 = -0.4
-tau_dot = 0.5
-buf_size = 12
+v0 = 0.4
+tau_dot = 0.75
+buf_size = 1
 order = 1
 
 # // Velocity Equation //
@@ -59,7 +72,7 @@ drone.takeoff()
 while (drone.NavData["demo"][0][2]):
 	time.sleep(0.1)
 # client.takeoff(function() {
-drone.stop()
+
 
 # //Functions
 
@@ -105,7 +118,7 @@ def StartDecent(current_range,current_time):
 	tau.append(0.0)
 	a_need.append(0.0)
 	v_need.append(0.0)
-	cmnd.append(-1*GetMotorCommand(v0))
+	cmnd.append(GetMotorCommand(v0))
 	marker.append(0.0)
 	
 
@@ -191,7 +204,7 @@ def EchoicFlow(current_range,current_time):
 	marker.append(1)
 
 	#//check if desitnation is reached
-	if(current_range <= 0):
+	if(current_range <= stop_height):
 		stage = 'stop'
 
 
@@ -211,14 +224,14 @@ def LandSave(current_range,current_time):
 	global start_point
 	global v0, tau_dot, buf_size, order
 	drone.land()
-	data_export.writedata(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, r, t, r_filt, v, tau, v_need, a_need, cmnd, marker)
+	#data_export.writedata(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, r, t, r_filt, v, tau, v_need, a_need, cmnd, marker)
 
 def GetMotorCommand(velocity):
-	sq = math.sqrt(0.749-velocity)
-	rnd = round(2.644*(sq-0.868)*1000)
-	command = rnd/1000
+	# sq = math.sqrt(0.749-velocity)
+	# rnd = round(2.644*(sq-0.868)*1000)
+	# command = rnd/1000
 
-	#command = velocity
+	command = velocity
 	if (command <= 0):
 		return 0.01
 	elif (command >= 1):
@@ -241,70 +254,39 @@ def WriteContinuously(f, index):
 	f.write(newLine)
 
 f = open("ContinuousData.txt", "w")
-f.write("stage\tr\tt\tr_filt\tv\ttau\tv_need\ta_need\tcmnd\tmarker\n")
+#f.write("stage\tr\tt\tr_filt\tv\ttau\tv_need\ta_need\tcmnd\tmarker\n")
 count = 0
 ndc = drone.NavDataCount
 loop = True
 startClock = time.time()
-while loop:
-	while ndc == drone.NavDataCount:
-		time.sleep(0.001)
-	current_range = (drone.NavData["demo"][3]/100)-stop_height
-	current_time = time.time() - startClock
-	if stage == 'up':
-		FlyToHeight(current_range, current_time)
-	elif stage == 'pause':
-		drone.stop() 
-		Pause(current_range, current_time)
-	elif stage == 'dec':
-		StartDecent(current_range,current_time)
-		WriteContinuously(f, count)
-		count = count+1
-	elif stage == 'buf':
-		FillBuffer(current_range,current_time)
-		WriteContinuously(f, count)
-		count = count+1
-	elif stage == 'ef':
-		EchoicFlow(current_range,current_time)
-		WriteContinuously(f, count)
-		count = count+1
-	elif stage == 'stop':
-		LandSave(current_range,current_time)
-		loop = False
-	ndc = drone.NavDataCount
+
+#Wait until drone is ready for commands
+while ndc == drone.NavDataCount:
+	time.sleep(0.001)
+current_range = (drone.NavData["demo"][3]/100)
+current_time = time.time() - startClock
+
+#Fly to starting height
+while current_range < start_height:
+    drone.move(0,0,.6,0)
+    current_range = (drone.NavData["demo"][3]/100)
+drone.stop()
+
+#Pause 1 second
+time.sleep(1)
+
+#Decend at velocity
+while(current_range > stop_height):
+    drone.move(0,0,-.6,0)
+    current_range = (drone.NavData["demo"][3]/100)
+    newline = "{},{},".format(current_range, time.time() - startClock)
+    f.write(newline)
+    time.sleep(0.1)
+
+drone.stop()
+
+#Land
+drone.land()
+
+ndc = drone.NavDataCount
 f.close()
-
-r0 = start_height - stop_height
-v0flight = v0
-data_export.flightgraph ("MostRecentData.csv", v[0], tau_dot, r[0])
-
-just = open("Justin.txt", "w")
-just.write("x,x,x,x,x,x,x,{},".format(len(r)))
-for x in r:
-	line = "{},".format(x)
-	just.write(line)
-for x in t:
-	line = "{},".format(x)
-	just.write(line)
-for x in r_filt:
-	line = "{},".format(x)
-	just.write(line)
-for x in v:
-	line = "{},".format(x)
-	just.write(line)
-for x in tau:
-	line = "{},".format(x)
-	just.write(line)
-for x in v_need:
-	line = "{},".format(x)
-	just.write(line)
-for x in a_need:
-	line = "{},".format(x)
-	just.write(line)
-for x in cmnd:
-	line = "{},".format(x)
-	just.write(line)
-for x in marker:
-	line = "{},".format(x)
-	just.write(line)
-just.close()
