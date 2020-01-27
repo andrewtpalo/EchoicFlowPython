@@ -13,9 +13,9 @@ pulse.writeSync(0);
 const port = new SerialPort('/dev/ttyS0', {
   baudRate: 9600
 })
-const parser = port.pipe(new Delimiter({ delimiter: '\n' }))
+const parser = port.pipe(new Delimiter({ delimiter: '\n' }));
 
-console.log("Start\n")
+console.log("Start\n");
 var i;
 var serialOutput;
 for (i = 0; i < 10; i++){
@@ -24,7 +24,7 @@ for (i = 0; i < 10; i++){
     pulse.writeSync(0);
     setTimeout(function() {}, 100);
     //serialOutput = ser.read(6)
-    const parser = port.pipe(new Delimiter({ delimiter: '\n' }))
+    const parser = port.pipe(new Delimiter({ delimiter: '\n' }));
     console.log("${parser}\n");
 }
 console.log("Stop/n");

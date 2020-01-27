@@ -1,6 +1,13 @@
 var arDrone = require('ar-drone');
 var fs = require('fs');
 var keypress = require('keypress')
+const pulse = new Gpio(4, 'out');
+pulse.writeSync(0);
+
+const port = new SerialPort('/dev/ttyS0', {
+  baudRate: 9600
+})
+const parser = port.pipe(new Delimiter({ delimiter: '\n' }))
 //var Polyfit = require('polyfit');
 var client = arDrone.createClient();
 var r = [];
@@ -27,6 +34,7 @@ var v0 = -0.4;
 var tau_dot = 0.50;
 var buf_size = 1;
 var order = 1;
+var stop_range = 0.3;
 
 // Velocity Equation //
 
@@ -64,7 +72,13 @@ client.on('navdata', function (data) {
 
 	if(data.demo.altitude) {
 
-		current_range = data.demo.altitude-stop_height;
+        current_range = data.demo.altitude-stop_height;
+        pulse.writeSync(1);
+        setTimeout(function() {}, 0.02);
+        pulse.writeSync(0);
+        setTimeout(function() {}, 100);
+        const parser = port.pipe(new Delimiter({ delimiter: '\n' }));
+        current_dist = parser - stop_height;
 		current_time = Date.now()/1000;
 
 		switch(stage) {
