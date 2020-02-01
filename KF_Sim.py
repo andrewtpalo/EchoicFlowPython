@@ -75,35 +75,41 @@ while kf.x[0] > 0.4:
         movingAvgV.append(actualV[index])
     index+=1
     
-sum = 0
+actualError = []
+kfActualError = []
+movingAvgError = []
+
 i = 0
 while i<index:
-    sum += (actual[i] - expected[i])
+    actualError.append(actual[i] - expected[i])
+    kfActualError.append(kfActual[i] - expected[i])
+    movingAvgError.append(movingAvg[i] - expected[i])
+    actualV[i] = actualV[i] + 0.3
+    kfActualV[i] = kfActualV[i] + 0.3
+    movingAvgV[i] = movingAvgV[i] + 0.3
     i+=1
 bias =  sum / index
 
 
 print bias
 
-plt.subplot(2,1,1)
-plt.plot(t, expected, label = "Expected Range")
-plt.plot(t, actual, label = "Measured Range")
-plt.plot(t, kfActual, label = "Kalman Filtered Range")
-plt.plot(t, movingAvg, label = "Moving Average Range")
 
-plt.title('Simulation of a Drone\'s Range')
-plt.ylabel('Position (m)')
+plt.plot(t, actualError, label = "Measured Range")
+plt.plot(t, kfActualError, label = "Kalman Filtered Range")
+plt.plot(t, movingAvgError, label = "Moving Average Range")
+
+plt.title('Simulation of a Drone\'s Range Error')
+plt.ylabel('Range Error(m)')
 plt.xlabel('Time (s)')
 plt.legend()
+plt.show()
 
-plt.subplot(2,1,2)
-plt.plot(t, expectedV, label = "Expected Velocity")
 plt.plot(t, actualV, label = "Measured Velocity")
 plt.plot(t, kfActualV, label = "Kalman Filtered Velocity")
 plt.plot(t, movingAvgV, label = "Moving Average Velocity")
 
-plt.title('Simulation of a Drone\'s Velocity')
-plt.ylabel('Velocity (m/s)')
+plt.title('Simulation of a Drone\'s Velocity Error')
+plt.ylabel('Velocity Error(m/s)')
 plt.xlabel('Time (s)')
 plt.legend()
 plt.show()
