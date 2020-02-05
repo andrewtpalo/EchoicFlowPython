@@ -56,20 +56,20 @@ while kf.x[0] > 0.4:
     expectedV.append(-.3)
     actualV.append((noiseZ - actual[index-1])/(t[index] - t[index-1]))
     kfActualV.append(kf.x[1])
-    sum = 0
+    asum = 0
 
-    if index >= 3:
+    if index >= 5:
         i = 0
-        while i < 3:
-            sum += actual[index-i]
+        while i < 5:
+            asum += actual[index-i]
             i+=1
-        movingAvg.append(sum/3)
-        sum = 0
+        movingAvg.append(asum/5)
+        asum = 0
         i = 0
-        while i < 3:
-            sum += actualV[index-i]
+        while i < 5:
+            asum += actualV[index-i]
             i+=1
-        movingAvgV.append(sum/3)
+        movingAvgV.append(asum/5)
     else:
         movingAvg.append(actual[index])
         movingAvgV.append(actualV[index])
@@ -88,10 +88,25 @@ while i<index:
     kfActualV[i] = kfActualV[i] + 0.3
     movingAvgV[i] = movingAvgV[i] + 0.3
     i+=1
-bias =  sum / index
+actualVar =  numpy.var(actualError)
+actualBias = sum(actualError)/len(actualError)
+kfActualVar =  numpy.var(kfActualError)
+kfActualBias = sum(kfActualError)/len(kfActualError)
+movingAvgVar =  numpy.var(movingAvgError)
+movingAvgBias = sum(movingAvgError)/len(movingAvgError)
 
 
-print bias
+
+
+print actualVar
+print actualBias
+print kfActualVar
+print kfActualBias
+print movingAvgVar
+print movingAvgBias
+
+
+print "---------------"
 
 
 plt.plot(t, actualError, label = "Measured Range")
@@ -103,6 +118,24 @@ plt.ylabel('Range Error(m)')
 plt.xlabel('Time (s)')
 plt.legend()
 plt.show()
+
+
+vactualVar =  numpy.var(actualV)
+vactualBias = sum(actualV)/len(actualV)
+vkfActualVar =  numpy.var(kfActualV)
+vkfActualBias = sum(kfActualV)/len(kfActualV)
+vmovingAvgVar =  numpy.var(movingAvgV)
+vmovingAvgBias = sum(movingAvgV)/len(movingAvgV)
+
+
+
+
+print vactualVar
+print vactualBias
+print vkfActualVar
+print vkfActualBias
+print vmovingAvgVar
+print vmovingAvgBias
 
 plt.plot(t, actualV, label = "Measured Velocity")
 plt.plot(t, kfActualV, label = "Kalman Filtered Velocity")
