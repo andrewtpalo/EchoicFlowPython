@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import csv
 import pandas
 import data_export
+import numpy
 
 
 drone = ps_drone.Drone()
@@ -39,11 +40,11 @@ filename_readable = "recentNOBuffReadable.txt"
 filename = "recentNOBuff.csv"
 start_height = 2
 stop_height = 0.4
-start_point = 12
+start_point = 30
 v0 = -0.4
 tau_dot = 0.5
-buf_size = 1
-order = 1
+buf_size = 19
+order = 2
 
 # // Velocity Equation //
 
@@ -135,19 +136,30 @@ def FillBuffer(current_range,current_time):
 	#//what is the current sample?
 	cur = len(r)-1
 	prev = len(r)-2
-
+	if len(r) == start_point:
+		stage = 'ef'
+		buf_first = len(r) - buf_size
+		r_buffed = r[buf_first:cur]
+		t_buffed = t[buf_first:cur]
+		poly = numpy.polyfit(t_buffed, r_buffed, order)
+		curve = numpy.poly1d(poly)
+		current_filt = curve(current_time)
+		r_filt.append(current_filt)
+		marker.append(1)
+	else:
+		r_filt.append(current_range)
+		marker.append(0.0)
 	#//save the rest of the data
-	r_filt.append(current_range)
+
 	v.append(ComputeVelocity(r_filt[prev],r_filt[cur],t[prev],t[cur]))
 	tau.append(ComputeTau(r[cur],v[cur]))
 	a_need.append(0.0)
 	v_need.append(0.0)
 	cmnd.append(-1*GetMotorCommand(v0))
-	marker.append(0.0)
+
 
 	#//if we have reached the starting sample...begin EF!
-	if (len(r) == start_point):
-		stage = 'ef'
+		
 
 def EchoicFlow(current_range,current_time):
 	global stage
@@ -168,8 +180,13 @@ def EchoicFlow(current_range,current_time):
 	cur = len(r)-1
 	prev = len(r)-2
 
-	#//filter the range data
-	r_filt.append(current_range)
+	buf_first = len(r) - buf_size
+	r_buffed = r[buf_first:cur]
+	t_buffed = t[buf_first:cur]
+	poly = numpy.polyfit(t_buffed, r_buffed, order)
+	curve = numpy.poly1d(poly)
+	current_filt = curve(current_time)
+	r_filt.append(current_filt)
 
 	#//compute current velocity
 	v.append(ComputeVelocity(r_filt[prev],r_filt[cur],t[prev],t[cur]))
