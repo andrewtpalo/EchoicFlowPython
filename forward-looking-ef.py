@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 import csv
 import pandas
 import data_export
+import RPi.GPIO as GPIO
+import serial
+import datetime
 
 
 drone = ps_drone.Drone()
@@ -17,6 +20,14 @@ drone.useDemoMode(True)
 drone.getNDpackage(["demo","altitude"]) 
 #time.sleep(1.0)
 
+#Pi Pin Initialization
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(4, GPIO.OUT)
+GPIO.output(4, GPIO.LOW)
+ser = serial.Serial(port="/dev/ttyS0", baudrate=9600)   
+GPIO.output(4, GPIO.HIGH)
+time.sleep(0.00002)
+serialOutput = ser.read(6)
 
 #initialization
 r = []
@@ -37,12 +48,14 @@ timer = "unset"
 
 filename_readable = "recentNOBuffReadable.txt"
 filename = "recentNOBuff.csv"
-start_height = 2
-stop_height = 0.4
+start_height = 3
+start_dist = 3
+stop_dist = 0.5
+stop_height = 0.2
 start_point = 12
 v0 = -0.4
 tau_dot = 0.5
-buf_size = 1
+buf_size = 12
 order = 1
 
 # // Velocity Equation //
@@ -81,11 +94,30 @@ def Pause(current_range,current_time):
 		global stage
 		global timer
 		time.sleep(2.5)
-		stage = 'dec'
+		stage = 'mov'
 		timer = 'set'
 
+def MoveToRange(current_horiz_range,current_time):
+	global stage
+	if(current_horiz_range > start_dist):
+		drone.move(0,-.3,0,0)
+	else:
+		stage = 'pause2'
 
-def StartDecent(current_range,current_time):
+def Pause2(current_range,current_time):
+	global stage
+	global timer
+	#stop the drone and wait
+	drone.stop()
+
+	if (timer == 'unset'):
+		global stage
+		global timer
+		time.sleep(2.5)
+		stage = 'approach'
+		timer = 'set'
+
+def StartApproach(current_horiz_range,current_time):
 	global stage
 	#//save initial range and time
 	global stage
@@ -98,9 +130,9 @@ def StartDecent(current_range,current_time):
 	global v_need
 	global cmnd
 	global marker
-	r.append(current_range)
+	r.append(current_horiz_range)
 	t.append(current_time)
-	r_filt.append(current_range)
+	r_filt.append(current_horiz_range)
 	v.append(0.0)
 	tau.append(0.0)
 	a_need.append(0.0)
@@ -109,13 +141,13 @@ def StartDecent(current_range,current_time):
 	marker.append(0.0)
 	
 
-	#//begin decent at initial velocity
-	drone.move(0,0,-1*GetMotorCommand(v0),0)
+	#//begin approach at initial velocity
+	drone.move(0,-1*GetMotorCommand(v0),0,0)
 	
 	#//change stage to start controlling decent
 	stage = 'buf'
 
-def FillBuffer(current_range,current_time):
+def FillBuffer(current_horiz_range,current_time):
 	global stage
 	global r
 	global t
@@ -129,7 +161,7 @@ def FillBuffer(current_range,current_time):
 
 
 # 	//save data
-	r.append(current_range)
+	r.append(current_horiz_range)
 	t.append(current_time)
 	
 	#//what is the current sample?
@@ -137,7 +169,7 @@ def FillBuffer(current_range,current_time):
 	prev = len(r)-2
 
 	#//save the rest of the data
-	r_filt.append(current_range)
+	r_filt.append(current_horiz_range)
 	v.append(ComputeVelocity(r_filt[prev],r_filt[cur],t[prev],t[cur]))
 	tau.append(ComputeTau(r[cur],v[cur]))
 	a_need.append(0.0)
@@ -149,7 +181,7 @@ def FillBuffer(current_range,current_time):
 	if (len(r) == start_point):
 		stage = 'ef'
 
-def EchoicFlow(current_range,current_time):
+def EchoicFlow(current_horiz_range,current_time):
 	global stage
 	global r
 	global t
@@ -161,7 +193,7 @@ def EchoicFlow(current_range,current_time):
 	global cmnd
 	global marker
 	#//save current range and time
-	r.append(current_range)
+	r.append(current_horiz_range)
 	t.append(current_time)
 
 	#//what is the current sample?
@@ -169,7 +201,7 @@ def EchoicFlow(current_range,current_time):
 	prev = len(r)-2
 
 	#//filter the range data
-	r_filt.append(current_range)
+	r_filt.append(current_horiz_range)
 
 	#//compute current velocity
 	v.append(ComputeVelocity(r_filt[prev],r_filt[cur],t[prev],t[cur]))
@@ -185,13 +217,13 @@ def EchoicFlow(current_range,current_time):
 	
 	#//set speed to needed velocity
 	cmnd.append(-1*GetMotorCommand(v_need[cur]))
-	drone.move(0,0,cmnd[cur],0)
+	drone.move(0,cmnd[cur],0,0)
 
 	#//save the marker
 	marker.append(1)
 
 	#//check if desitnation is reached
-	if(current_range <= 0):
+	if(current_horiz_range <= stop_dist):
 		stage = 'stop'
 
 
@@ -211,11 +243,9 @@ def LandSave(current_range,current_time):
 	global start_point
 	global v0, tau_dot, buf_size, order
 	drone.land()
-	data_export.writedata(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, r, t, r_filt, v, tau, v_need, a_need, cmnd, marker)
+	data_export.writedata(start_dist, stop_dist, start_point, v0, tau_dot, buf_size, order, r, t, r_filt, v, tau, v_need, a_need, cmnd, marker)
 
 def GetMotorCommand(velocity):
-	if velocity > 0.749:
-		velocity = -0.05
 	sq = math.sqrt(0.749-velocity)
 	rnd = round(2.644*(sq-0.868)*1000)
 	command = rnd/1000
@@ -249,32 +279,43 @@ ndc = drone.NavDataCount
 loop = True
 startClock = time.time()
 while loop:
-	while ndc == drone.NavDataCount:
-		time.sleep(0.0001)
-	current_range = (drone.NavData["demo"][3]/100)-stop_height
-	current_time = time.time() - startClock
-	if stage == 'up':
+    while ndc == drone.NavDataCount:
+        time.sleep(0.001)
+    current_range = (drone.NavData["demo"][3]/100)-stop_height
+    current_time = time.time() - startClock
+    serialOutput = ser.read(6)
+    current_horiz_range = int(serialOutput[1:])/1000
+    if stage == 'up':
 		FlyToHeight(current_range, current_time)
-	elif stage == 'pause':
+    elif stage == 'pause':
 		drone.stop() 
 		Pause(current_range, current_time)
-	elif stage == 'dec':
-		StartDecent(current_range,current_time)
+    elif stage == 'mov':
+		MoveToRange(current_horiz_range, current_time)
+    elif stage == 'pause2':
+		drone.stop() 
+		Pause2(current_range, current_time)
+    elif stage == 'approach':
+		StartApproach(current_horiz_range,current_time)
 		WriteContinuously(f, count)
 		count = count+1
-	elif stage == 'buf':
+    elif stage == 'buf':
 		FillBuffer(current_range,current_time)
 		WriteContinuously(f, count)
 		count = count+1
-	elif stage == 'ef':
+    elif stage == 'ef':
 		EchoicFlow(current_range,current_time)
 		WriteContinuously(f, count)
 		count = count+1
-	elif stage == 'stop':
+    elif stage == 'stop':
 		LandSave(current_range,current_time)
 		loop = False
-	ndc = drone.NavDataCount
+    ndc = drone.NavDataCount
 f.close()
+
+#Pi Pin Cleanup
+ser.close()
+GPIO.cleanup()
 
 r0 = start_height - stop_height
 v0flight = v0
