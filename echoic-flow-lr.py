@@ -36,8 +36,8 @@ timer = "unset"
 
 # //Parameters//
 
-filename_readable = "recentNOBuffReadable.txt"
-filename = "recentNOBuff.csv"
+filename_readable = "recentLRReadable.txt"
+filename = "recentLRBuff.csv"
 start_height = 2
 stop_height = 0.4
 start_point = 30
