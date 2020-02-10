@@ -2,3 +2,5 @@
 .vscode/settings.json
 FlightData/
 FlightGraphs/
+.vscode/settings.json
+.gitignore
