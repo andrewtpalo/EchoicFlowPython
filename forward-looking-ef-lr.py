@@ -8,7 +8,10 @@ import data_export
 import RPi.GPIO as GPIO
 import serial
 import datetime
+import numpy
 
+#Allow time to disconnect monitor
+time.sleep(20)
 
 drone = ps_drone.Drone()
 drone.startup()           # Connects to the drone and starts subprocesses
@@ -27,7 +30,7 @@ GPIO.output(4, GPIO.LOW)
 ser = serial.Serial(port="/dev/ttyS0", baudrate=9600)   
 GPIO.output(4, GPIO.HIGH)
 time.sleep(0.00002)
-serialOutput = ser.read(6)
+
 
 #initialization
 r = []
@@ -48,15 +51,15 @@ timer = "unset"
 
 filename_readable = "recentNOBuffReadable.txt"
 filename = "recentNOBuff.csv"
-start_height = 3
+start_height = 0.75
 start_dist = 3
-stop_dist = 0.5
+stop_dist = 0.75
 stop_height = 0.2
-start_point = 12
-v0 = -0.4
+start_point = 30
+v0 = -0.1
 tau_dot = 0.5
-buf_size = 12
-order = 1
+buf_size = 19
+order = 2
 
 # // Velocity Equation //
 
@@ -73,7 +76,8 @@ while (drone.NavData["demo"][0][2]):
 	time.sleep(0.1)
 # client.takeoff(function() {
 drone.stop()
-
+time.sleep(0.1)
+drone.stop()
 # //Functions
 
 def FlyToHeight(current_range,current_time):
@@ -99,10 +103,12 @@ def Pause(current_range,current_time):
 
 def MoveToRange(current_horiz_range,current_time):
 	global stage
-	if(current_horiz_range > start_dist):
-		drone.move(0,-.3,0,0)
+	if(current_horiz_range > start_dist+0.01):
+	    drone.move(0,-.05,0,0)
+	elif(current_horiz_range < start_dist-0.01):
+            drone.move(0,.05,0,0)
 	else:
-		stage = 'pause2'
+	    stage = 'pause2'
 
 def Pause2(current_range,current_time):
 	global stage
@@ -113,7 +119,7 @@ def Pause2(current_range,current_time):
 	if (timer == 'unset'):
 		global stage
 		global timer
-		time.sleep(2.5)
+		time.sleep(3)
 		stage = 'approach'
 		timer = 'set'
 
@@ -167,19 +173,26 @@ def FillBuffer(current_horiz_range,current_time):
 	#//what is the current sample?
 	cur = len(r)-1
 	prev = len(r)-2
+	if len(r) == start_point:
+            stage = 'ef'
+            buf_first = len(r) - buf_size
+            r_buffed = r[buf_first:cur]
+            t_buffed = t[buf_first:cur]
+            poly = numpy.polyfit(t_buffed, r_buffed, order)
+            curve = numpy.poly1d(poly)
+            current_filt = curve(current_time)
+            r_filt.append(current_filt)
+            marker.append(1)
+        else:
+            r_filt.append(current_horiz_range)
+            marker.append(0.0)
 
 	#//save the rest of the data
-	r_filt.append(current_horiz_range)
 	v.append(ComputeVelocity(r_filt[prev],r_filt[cur],t[prev],t[cur]))
 	tau.append(ComputeTau(r[cur],v[cur]))
 	a_need.append(0.0)
 	v_need.append(0.0)
 	cmnd.append(-1*GetMotorCommand(v0))
-	marker.append(0.0)
-
-	#//if we have reached the starting sample...begin EF!
-	if (len(r) == start_point):
-		stage = 'ef'
 
 def EchoicFlow(current_horiz_range,current_time):
 	global stage
@@ -200,8 +213,13 @@ def EchoicFlow(current_horiz_range,current_time):
 	cur = len(r)-1
 	prev = len(r)-2
 
-	#//filter the range data
-	r_filt.append(current_horiz_range)
+        buf_first = len(r) - buf_size
+        r_buffed = r[buf_first:cur]
+        t_buffed = t[buf_first:cur]
+        poly = numpy.polyfit(t_buffed, r_buffed, order)
+        curve = numpy.poly1d(poly)
+        current_filt = curve(current_time)
+	r_filt.append(current_filt)
 
 	#//compute current velocity
 	v.append(ComputeVelocity(r_filt[prev],r_filt[cur],t[prev],t[cur]))
@@ -246,19 +264,19 @@ def LandSave(current_range,current_time):
 	data_export.writedata(start_dist, stop_dist, start_point, v0, tau_dot, buf_size, order, r, t, r_filt, v, tau, v_need, a_need, cmnd, marker)
 
 def GetMotorCommand(velocity):
-    if(velocity > 0.749):
+    if(velocity>0.748):
         velocity = 0.748
-	sq = math.sqrt(0.749-velocity)
-	rnd = round(2.644*(sq-0.868)*1000)
-	command = rnd/1000
+    sq = math.sqrt(0.749-velocity)
+    rnd = round(2.644*(sq-0.868)*1000)
+    command = rnd/1000
 
-	#command = velocity
-	if (command <= 0):
-		return 0.01
-	elif (command >= 1):
-		return 1
-	else:
-		return command
+    #command = velocity
+    if (command <= 0):
+            return 0.01
+    elif (command >= 1):
+            return 1
+    else:
+            return command
 
 def ComputeVelocity(r1,r2,t1,t2):
 	if (t2 == t1):
@@ -286,32 +304,43 @@ while loop:
     current_range = (drone.NavData["demo"][3]/100)-stop_height
     current_time = time.time() - startClock
     serialOutput = ser.read(6)
-    current_horiz_range = int(serialOutput[1:])/1000
+    current_horiz_range = float(int(serialOutput[1:])/1000.0)
     if stage == 'up':
 		FlyToHeight(current_range, current_time)
+		print"up\n"
     elif stage == 'pause':
 		drone.stop() 
 		Pause(current_range, current_time)
+		print"pause1\n"
     elif stage == 'mov':
 		MoveToRange(current_horiz_range, current_time)
+		timer = "unset"
+		print"Move to range\n"
+		print str(current_horiz_range) + "\n"
     elif stage == 'pause2':
 		drone.stop() 
 		Pause2(current_range, current_time)
+		print"pause2\n"
     elif stage == 'approach':
 		StartApproach(current_horiz_range,current_time)
 		WriteContinuously(f, count)
 		count = count+1
+		print"approach\n"
     elif stage == 'buf':
-		FillBuffer(current_range,current_time)
+		FillBuffer(current_horiz_range,current_time)
 		WriteContinuously(f, count)
 		count = count+1
+		print"buf\n"
     elif stage == 'ef':
-		EchoicFlow(current_range,current_time)
+		EchoicFlow(current_horiz_range,current_time)
 		WriteContinuously(f, count)
 		count = count+1
+		print"ef\n"
+		print str(current_horiz_range) + "\n"
     elif stage == 'stop':
-		LandSave(current_range,current_time)
+		LandSave(current_horiz_range,current_time)
 		loop = False
+		print"stop\n"
     ndc = drone.NavDataCount
 f.close()
 

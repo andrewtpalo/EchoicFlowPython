@@ -16,17 +16,41 @@ while (drone.getBattery()[0] == -1):
 print "Battery: "+str(drone.getBattery()[0])+"%  "+str(drone.getBattery()[1])	# Gives a battery-status
 drone.useDemoMode(True) 
 drone.getNDpackage(["demo","altitude"]) 
-ndc = drone.NavDataCount
 r = []
+t= []
 loop = True
+
+
+drone.takeoff()
+while (drone.NavData["demo"][0][2]):
+	time.sleep(0.1)
+# client.takeoff(function() {
+drone.stop()
+
+start = time.time()
 while loop:
-    while ndc == drone.NavDataCount:
-		time.sleep(0.0001)
-    r.append(drone.NavData["demo"][3]/100)
-    if len(r) > 150:
+
+    time.sleep(0.067)
+    r.append(drone.NavData["demo"][3])
+    t.append(time.time() - start)
+    print drone.NavData["demo"][3]
+    if len(r) > 250:
         loop = False
 
-
+drone.land()
+print 'hi'
+mean = sum(r)/len(r)
 measurementVar = numpy.var(r)
 
+print mean
 print measurementVar
+
+
+plt.hist(r, bins=10)
+
+plt.title('Measurement Noise')
+plt.ylabel('Frequency')
+plt.xlabel('Range (cm)')
+
+plt.legend()
+plt.show()
