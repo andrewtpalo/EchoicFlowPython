@@ -8,18 +8,19 @@ import matplotlib.pyplot as plt
 
 kf = KalmanFilter(dim_x=2, dim_z=1)
 dt = 1.0/15.0
-kf.x = numpy.array([[2.1],
-                    [-0.4]])
+kf.x = numpy.array([[2.0],
+                    [-0.3]])
 kf.F = numpy.array([[1.,dt],
                 [0.,1.]])
 
 kf.H = numpy.array([[1.,0.]])
 
-kf.P *= 1000
+kf.P = numpy.array([[1000,1000],
+                [1000,1000]])
 
-kf.R = 0.01
+kf.R = 500
 
-kf.Q = Q_discrete_white_noise(dim=2, dt=dt, var=0.15)
+kf.Q = Q_discrete_white_noise(dim=2, dt=dt, var=0.1)
 
 
 expected = []
@@ -32,14 +33,14 @@ t = []
 movingAvg = []
 movingAvgV = []
 index = 1
-movingAvg.append(2.1)
-movingAvgV.append(-.4)
+movingAvg.append(2.0)
+movingAvgV.append(-.3)
 expected.append(2.0)
 expectedV.append(-.3)
-actual.append(2.1)
-kfActual.append(2.1)
-actualV.append(-.4)
-kfActualV.append(-.4)
+actual.append(2.0)
+kfActual.append(2.0)
+actualV.append(-.3)
+kfActualV.append(-.3)
 t.append(0)
 start = time.time()
 z = 2.0

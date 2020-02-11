@@ -295,10 +295,10 @@ f.close()
 
 r0 = start_height - stop_height
 v0flight = v0
-data_export.flightgraph ("MostRecentData.csv", v[0], tau_dot, r[0])
+data_export.flightgraph ("MostRecentData.csv", v[start_point+1], tau_dot, r[start_point+1])
 
 just = open("Justin.txt", "w")
-just.write("x,x,x,x,x,x,x,{},".format(len(r)))
+just.write("0,0,0,0,0,0,0,{},".format(len(r)))
 for x in r:
 	line = "{},".format(x)
 	just.write(line)
