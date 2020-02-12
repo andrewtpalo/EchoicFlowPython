@@ -21,11 +21,11 @@ t= []
 loop = True
 
 
-drone.takeoff()
-while (drone.NavData["demo"][0][2]):
-	time.sleep(0.1)
-# client.takeoff(function() {
-drone.stop()
+# drone.takeoff()
+# while (drone.NavData["demo"][0][2]):
+# 	time.sleep(0.1)
+# # client.takeoff(function() {
+# drone.stop()
 
 start = time.time()
 while loop:

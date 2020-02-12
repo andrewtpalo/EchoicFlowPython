@@ -35,7 +35,7 @@ def flightgraph (filename, v0, tau_dot, r0):
 	plt.savefig(fileName)
 
 # Records flight data in .txt and .csv in folder and a copy as MostRecentData.csv in root
-def writedata(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, r, t, r_filt, v, tau, v_need, a_need, cmnd, marker):
+def writedata(start_height, stop_height, start_point, v0, tau_dot, r, t, r_filt, v, tau, v_need, a_need, cmnd, marker):
 	currentTime = datetime.datetime.now()
 
 	# Readable Table
@@ -43,7 +43,7 @@ def writedata(start_height, stop_height, start_point, v0, tau_dot, buf_size, ord
 	f = open(filename_readable, "w")
 	x = PrettyTable()
 	x.field_names = ["r","t","r_filt","v","tau","v_need","a_need","cmnd,marker"]
-	header = "start_height = {}\nstop_height = {}\nstart_point = {}\nv0 = {}\ntau_dot = {}\nbuf_size = {}\norder = {}\nlen(r) = {}\n\n".format(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, len(r))
+	header = "start_height = {}\nstop_height = {}\nstart_point = {}\nv0 = {}\ntau_dot = {}\nlen(r) = {}\n\n".format(start_height, stop_height, start_point, v0, tau_dot, len(r))
 	f.write(header)
 	for index in range(0, len(r)):
 		x.add_row([r[index],t[index],r_filt[index],v[index],tau[index],v_need[index],a_need[index],cmnd[index]])
@@ -62,13 +62,13 @@ def writedata(start_height, stop_height, start_point, v0, tau_dot, buf_size, ord
 		h.write(newLine)
 	g.close()
 
-def printRecentGraph():
+def printRecentGraph(filename, offset):
 	# Plotting data with MatPlotLib
-	h = 8
+	h = 1
 	tau_dot = 0.5
 	rawdata = []
-	rawdata=numpy.loadtxt("justin.txt", dtype='double', delimiter=',')
-	samples = int(rawdata[7])
+	rawdata=numpy.loadtxt(filename, dtype='double', delimiter=',')
+	samples = int(rawdata[0])
 
 	# Get flight data and ideal calculations
 	t = rawdata[samples+h:2*samples+h-1]
@@ -76,21 +76,22 @@ def printRecentGraph():
 	t = [x  - start for x in t]
 	r_filt = rawdata[2*samples+h:3*samples+h-1]
 	v = rawdata[3*samples+h:4*samples+h-1]
-	r0 = r_filt[12]
-	v0 = v[12]
+	r0 = r_filt[offset]
+	v0 = v[offset]
 	tIdeal = numpy.linspace(0,-r0/(v0*tau_dot), samples)
 	yIdeal = r0 * pow((1+((tau_dot*v0*tIdeal)/r0)), 1/tau_dot)
 	# Plot both lines
-	begin = t[12]
+	begin = t[offset]
 	tIdeal = [x  + begin for x in tIdeal]
 	plt.plot(t, r_filt, label='Flight Data')
-	plt.plot(tIdeal, yIdeal, label='Ideal Flight with EF')
+	plt.plot(tIdeal, yIdeal, '-', label='Ideal Flight with EF')
 	plt.legend()
 	plt.grid()
 	plt.xlabel('Time (s)')
 	plt.ylabel('Range (m)')
 	plt.title('Range vs. Time')
 	plt.xlim(left = 0)
+	plt.ylim(bottom = 0)
 	plt.show()
 
 	i = 0
@@ -107,4 +108,4 @@ def printRecentGraph():
 
 
 
-printRecentGraph()
+#printRecentGraph("Justin.txt")

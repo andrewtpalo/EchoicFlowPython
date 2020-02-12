@@ -228,7 +228,7 @@ def LandSave(current_range,current_time):
 	global start_point
 	global v0, tau_dot, buf_size, order
 	drone.land()
-	data_export.writedata(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, r, t, r_filt, v, tau, v_need, a_need, cmnd, marker)
+	data_export.writedata(start_height, stop_height, start_point, v0, tau_dot, r, t, r_filt, v, tau, v_need, a_need, cmnd, marker)
 
 def GetMotorCommand(velocity):
 	if velocity > 0.749:
@@ -293,12 +293,9 @@ while loop:
 	ndc = drone.NavDataCount
 f.close()
 
-r0 = start_height - stop_height
-v0flight = v0
-data_export.flightgraph ("MostRecentData.csv", v[start_point+1], tau_dot, r[start_point+1])
 
-just = open("Justin.txt", "w")
-just.write("0,0,0,0,0,0,0,{},".format(len(r)))
+just = open("JustinLR.txt", "w")
+just.write("{},".format(len(r)))
 for x in r:
 	line = "{},".format(x)
 	just.write(line)
@@ -326,4 +323,7 @@ for x in cmnd:
 for x in marker:
 	line = "{},".format(x)
 	just.write(line)
+just.write("0")
 just.close()
+
+data_export.printRecentGraph("JustinLR.txt", start_point)

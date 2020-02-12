@@ -18,8 +18,8 @@ while (drone.getBattery()[0] == -1):
 print "Battery: "+str(drone.getBattery()[0])+"%  "+str(drone.getBattery()[1])	# Gives a battery-status
 drone.useDemoMode(True) 
 drone.getNDpackage(["demo","altitude"]) 
-#time.sleep(1.0)
-
+time.sleep(1.0)
+drone.trim()
 
 #initialization
 r = []
@@ -45,8 +45,8 @@ stop_height = 0.4
 start_point = 30
 v0 = -0.4
 tau_dot = 0.5
-buf_size = 19
-order = 2
+
+
 
 
 kf = KalmanFilter(dim_x=2, dim_z=1)
@@ -238,9 +238,9 @@ def LandSave(current_range,current_time):
 	global start_height
 	global stop_height
 	global start_point
-	global v0, tau_dot, buf_size, order
+	global v0, tau_dot
 	drone.land()
-	data_export.writedata(start_height, stop_height, start_point, v0, tau_dot, buf_size, order, r, t, r_filt, v, tau, v_need, a_need, cmnd, marker)
+	data_export.writedata(start_height, stop_height, start_point, v0, tau_dot, r, t, r_filt, v, tau, v_need, a_need, cmnd, marker)
 
 def GetMotorCommand(velocity):
 	if velocity > 0.749:
@@ -305,12 +305,10 @@ while loop:
 	ndc = drone.NavDataCount
 f.close()
 
-r0 = start_height - stop_height
-v0flight = v0
-data_export.flightgraph ("MostRecentData.csv", v[0], tau_dot, r[0])
+
 
 just = open("Justin.txt", "w")
-just.write("x,x,x,x,x,x,x,{},".format(len(r)))
+just.write("{},".format(len(r)))
 for x in r:
 	line = "{},".format(x)
 	just.write(line)
@@ -338,4 +336,7 @@ for x in cmnd:
 for x in marker:
 	line = "{},".format(x)
 	just.write(line)
+just.write("0")
 just.close()
+
+data_export.printRecentGraph("Justin.txt", start_point)
