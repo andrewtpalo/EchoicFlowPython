@@ -38,20 +38,20 @@ buf_size = 10
 
 
 
-kf = KalmanFilter(dim_x=2, dim_z=1)
+# kf = KalmanFilter(dim_x=2, dim_z=1)
 dt = 1.0/15.0
-kf.x = numpy.array([[2.6],
-					[-0.5]])
-kf.F = numpy.array([[1.,dt],
-				[0.,1.]])
+# kf.x = numpy.array([[2.6],
+# 					[-0.5]])
+# kf.F = numpy.array([[1.,dt],
+# 				[0.,1.]])
 
-kf.H = numpy.array([[1.,0.]])
+# kf.H = numpy.array([[1.,0.]])
 
-kf.P *= 10
+# kf.P *= 10
 
-kf.R = .0005
+# kf.R = .0005
 
-kf.Q = Q_discrete_white_noise(dim=2, dt=dt, var=0.13)
+# kf.Q = Q_discrete_white_noise(dim=2, dt=dt, var=0.13)
 # // Velocity Equation //
 
 # // C = 2.602*(Sqrt(0.712-V)-0.846)
@@ -97,8 +97,7 @@ f.write("stage\tr\tt\tr_filt\tv\ttau\tv_need\ta_need\tcmnd\tmarker\n")
 count = 0
 
 loop = True
-r_filt = []
-r_filt.append(r0)
+
 v.append(v0)
 r_meas.append(r0 + numpy.random.normal(0,r_error))
 t.append(0)
@@ -121,7 +120,7 @@ while i < buf_size + 1:
 	r.append(r[i-1] + v[i-1]*dt + 0.5*a[i-1]*(dt**2))
 
 	r_meas.append(r[i] + numpy.random.normal(0,r_error))
-	r_filt.append(r_meas[i])
+
 	i = i + 1
 
 
@@ -129,14 +128,14 @@ while i < buf_size + 1:
 
 i = buf_size+1
 duration = -r[buf_size]/(tau_dot * v[buf_size])
-samples = numpy.ceil(duration*15 + buf_size+1)
+samples = numpy.ceil(duration*15 + buf_size +1)
 while i < samples:
 
 	# current_filt = kf.x[0][0]
 	# r_filt.append(current_filt)
 
-	v_meas.append(ComputeVelocity(r_filt[i-2], r_filt[i-1], t[i-2], t[i-1]))
-	tau.append(ComputeTau(r_filt[i-1], v_meas[-1]))
+	v_meas.append(ComputeVelocity(r_meas[i-2], r_meas[i-1], t[i-2], t[i-1]))
+	tau.append(ComputeTau(r_meas[i-1], v_meas[-1]))
 	a_need.append(v_meas[-1]*(1-tau_dot)/tau[-1])
 	v_need.append(v_meas[-1] + a_need[-1]*dt)
 	#//compute current velocity
@@ -152,9 +151,9 @@ while i < samples:
 	r.append(r[i-1] + v[i-1]*dt + 0.5*a[i-1]*(dt**2))
 
 	r_meas.append(r[i] + numpy.random.normal(0,r_error))
-	kf.predict()
-	kf.update(r_meas[i])
-	r_filt.append(kf.x[0][0])
+	# kf.predict()
+	# kf.update(r_meas[i])
+	# r_filt.append(kf.x[0][0])
 	i = i + 1
 	#//check if desitnation is reached
 
@@ -169,13 +168,13 @@ f.close()
 
 just = open("JustinKFTest.txt", "w")
 just.write("{},".format(len(r)))
-for x in r_meas:
+for x in r:
 	line = "{},".format(x)
 	just.write(line)
 for x in t:
 	line = "{},".format(x)
 	just.write(line)
-for x in r_filt:
+for x in r_meas:
 	line = "{},".format(x)
 	just.write(line)
 for x in v:
