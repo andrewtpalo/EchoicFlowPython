@@ -97,7 +97,6 @@ def printRecentGraph(filename, offset):
 	i = 0
 	mseSum = 0
 	n = len(r_filt)
-	print n
 
 	for i in range (0,n-offset):
 		dif = r_filt[i+offset] - (r0 * pow((1+((tau_dot*v0*t[i])/r0)), 1/tau_dot))
@@ -109,9 +108,9 @@ def printRecentGraph(filename, offset):
 	# Save file to FlightGraphs folder
 	# fileName = "{}{}".format("FlightGraphs/FlightGraph_", currentTime.strftime("%Y-%m-%d-%H:%M"))
 	# plt.savefig(fileName)
-	print "MSE = " + str(MSE)
 	plt.annotate('MSE = ' + str(round(MSE, 7)) + ' m^2', xy=(5.1,1.4), xytext = (5.9,1.1))
 	plt.annotate('RMSE = ' + str(round(RMSE, 7)) + ' m', xy=(5.1,1.4), xytext = (5.9,0.85))
 
-	plt.show()
-printRecentGraph("Justin.txt", 30)
+	# plt.show()
+	return RMSE
+# printRecentGraph("Justin.txt", 30)
