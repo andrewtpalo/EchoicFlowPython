@@ -28,30 +28,29 @@ timer = "unset"
 
 filename_readable = "recentKFTestReadable.txt"
 filename = "recentKFTestBuff.csv"
-r0 = 2.6
-v0 = -0.5
+r0 = 2.0
+v0 = -0.4
 tau_dot = 0.5
-v_error = 0.0126
-r_error = 0.007
+v_error = 0
+r_error = 0
 buf_size = 10
-
 
 
 
 kf = KalmanFilter(dim_x=2, dim_z=1)
 dt = 1.0/15.0
-kf.x = numpy.array([[2.6],
-					[-0.5]])
+kf.x = numpy.array([[2.0],
+					[-0.4]])
 kf.F = numpy.array([[1.,dt],
 				[0.,1.]])
 
 kf.H = numpy.array([[1.,0.]])
 
-kf.P *= 10
+kf.P *= 1000
 
-kf.R = .0005
+kf.R = 0.005
 
-kf.Q = Q_discrete_white_noise(dim=2, dt=dt, var=0.13)
+kf.Q = Q_discrete_white_noise(dim=2, dt=dt*15, var=0.5)
 # // Velocity Equation //
 
 # // C = 2.602*(Sqrt(0.712-V)-0.846)
@@ -100,7 +99,7 @@ loop = True
 r_filt = []
 r_filt.append(r0)
 v.append(v0)
-r_meas.append(r0 + numpy.random.normal(0,r_error))
+r_meas.append(r0 + numpy.random.normal(0.0,r_error))
 t.append(0)
 r.append(r0)
 tau.append(0)
@@ -120,7 +119,7 @@ while i < buf_size + 1:
 
 	r.append(r[i-1] + v[i-1]*dt + 0.5*a[i-1]*(dt**2))
 
-	r_meas.append(r[i] + numpy.random.normal(0,r_error))
+	r_meas.append(r[i] + numpy.random.normal(0.0,r_error))
 	r_filt.append(r_meas[i])
 	i = i + 1
 
@@ -130,7 +129,7 @@ while i < buf_size + 1:
 i = buf_size+1
 duration = -r[buf_size]/(tau_dot * v[buf_size])
 samples = numpy.ceil(duration*15 + buf_size+1)
-while i < samples:
+while r_filt[i-1] > 0.01 and i < samples:
 
 	# current_filt = kf.x[0][0]
 	# r_filt.append(current_filt)
@@ -141,7 +140,7 @@ while i < samples:
 	v_need.append(v_meas[-1] + a_need[-1]*dt)
 	#//compute current velocity
 	# v.append(kf.x[1][0])
-	v.append(v_need[-1] + numpy.random.normal(0,v_error))
+	v.append(v_need[-1] + numpy.random.normal(0.0,v_error))
 	t.append(t[i-1] + dt)
 	a.append(ComputeAcceleration(v[i-1],v[i],t[i-1],t[i]))
 	

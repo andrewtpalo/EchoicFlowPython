@@ -78,13 +78,13 @@ def printRecentGraph(filename, offset):
 	v = rawdata[3*samples+h:4*samples+h-1]
 	r0 = r_filt[offset]
 	v0 = v[offset]
-	tIdeal = numpy.linspace(0,-r0/(v0*tau_dot), samples)
+	tIdeal = numpy.arange(0,-r0/(v0*tau_dot), 1.0/15.0)
 	yIdeal = r0 * pow((1+((tau_dot*v0*tIdeal)/r0)), 1/tau_dot)
 	# Plot both lines
 	begin = t[offset]
 	tIdeal = [x  + begin for x in tIdeal]
 	plt.plot(t, r_filt, label='Flight Data')
-	plt.plot(tIdeal, yIdeal, '-', label='Ideal Flight with EF')
+	plt.plot(tIdeal, yIdeal, '--', label='Ideal Flight with EF')
 	plt.legend()
 	plt.grid()
 	plt.xlabel('Time (s)')
@@ -92,20 +92,26 @@ def printRecentGraph(filename, offset):
 	plt.title('Range vs. Time')
 	plt.xlim(left = 0)
 	plt.ylim(bottom = 0)
-	plt.show()
+	plt.legend
 
 	i = 0
 	mseSum = 0
 	n = len(r_filt)
-	for i in range (0,n):
-		dif = yIdeal[i] - r_filt[i]
+	print n
+
+	for i in range (0,n-offset):
+		dif = r_filt[i+offset] - (r0 * pow((1+((tau_dot*v0*t[i])/r0)), 1/tau_dot))
 		mseSum = mseSum + dif**2
 	MSE = mseSum/n
+	RMSE = numpy.sqrt(MSE)
+
+
 	# Save file to FlightGraphs folder
 	# fileName = "{}{}".format("FlightGraphs/FlightGraph_", currentTime.strftime("%Y-%m-%d-%H:%M"))
 	# plt.savefig(fileName)
 	print "MSE = " + str(MSE)
+	plt.annotate('MSE = ' + str(round(MSE, 7)) + ' m^2', xy=(5.1,1.4), xytext = (5.9,1.1))
+	plt.annotate('RMSE = ' + str(round(RMSE, 7)) + ' m', xy=(5.1,1.4), xytext = (5.9,0.85))
 
-
-
-printRecentGraph("Justin.txt", 13)
+	plt.show()
+printRecentGraph("Justin.txt", 30)

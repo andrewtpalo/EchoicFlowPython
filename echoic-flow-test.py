@@ -28,11 +28,11 @@ timer = "unset"
 
 filename_readable = "recentKFTestReadable.txt"
 filename = "recentKFTestBuff.csv"
-r0 = 2.6
-v0 = -0.5
+r0 = 2.0
+v0 = -0.4
 tau_dot = 0.5
-v_error = 0.0126
-r_error = 0.007
+v_error = 0.0
+r_error = 0.0
 buf_size = 10
 
 
