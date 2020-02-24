@@ -54,12 +54,12 @@ def kfTest(v_error,r_error, buf_size):
 
 	kf.H = numpy.array([[1.,0.]])
 
-	kf.P = numpy.array([[1000.,100.],
-					[100.,1000.]])
+	kf.P = numpy.array([[1000.,0.],
+					[0.,1000.]])
 
-	kf.R = 0.0025
+	kf.R = 0.005
 
-	kf.Q = Q_discrete_white_noise(dim=2, dt=dt*15, var=0.1)
+	kf.Q = Q_discrete_white_noise(dim=2, dt=dt, var=0.13)
 	# // Velocity Equation //
 
 	# // C = 2.602*(Sqrt(0.712-V)-0.846)

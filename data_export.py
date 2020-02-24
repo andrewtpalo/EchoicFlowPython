@@ -4,6 +4,7 @@ import pandas
 import numpy
 import datetime
 from prettytable import PrettyTable
+import time
 
 # Plots flight graph from data in 'filename' csv, saves to FlightGraphs folder
 def flightgraph (filename, v0, tau_dot, r0):
@@ -83,23 +84,27 @@ def printRecentGraph(filename, offset):
 	# Plot both lines
 	begin = t[offset]
 	tIdeal = [x  + begin for x in tIdeal]
-	plt.plot(t, r_filt, label='Flight Data')
-	plt.plot(tIdeal, yIdeal, '--', label='Ideal Flight with EF')
-	plt.legend()
-	plt.grid()
-	plt.xlabel('Time (s)')
-	plt.ylabel('Range (m)')
-	plt.title('Range vs. Time')
-	plt.xlim(left = 0)
-	plt.ylim(bottom = 0)
-	plt.legend
+	# plt.plot(t, r_filt, label='Flight Data')
+	# plt.plot(tIdeal, yIdeal, '--', label='Ideal Flight with EF')
+	# plt.legend()
+	# plt.grid()
+	# plt.xlabel('Time (s)')
+	# plt.ylabel('Range (m)')
+	# plt.title('Range vs. Time')
+	# plt.xlim(left = 0)
+	# plt.ylim(bottom = 0)
+	# plt.legend
 
 	i = 0
 	mseSum = 0
 	n = len(r_filt)
-
-	for i in range (0,n-offset):
-		dif = r_filt[i+offset] - (r0 * pow((1+((tau_dot*v0*t[i])/r0)), 1/tau_dot))
+	endTime = -r0/(v0*tau_dot) + t[offset]
+	end = n - offset
+	if t[n-1] > endTime:
+		end = numpy.argwhere(t > endTime)
+		end = end[0][0] - offset
+	for i in range (0,end):
+		dif = r_filt[i+offset] - (r0 * pow((1+((tau_dot*v0*(t[i]))/r0)), 1/tau_dot))
 		mseSum = mseSum + dif**2
 	MSE = mseSum/n
 	RMSE = numpy.sqrt(MSE)
