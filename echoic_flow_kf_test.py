@@ -54,12 +54,12 @@ def kfTest(v_error,r_error, buf_size):
 
 	kf.H = numpy.array([[1.,0.]])
 
-	kf.P = numpy.array([[1000.,0.],
-					[0.,1000.]])
+	kf.P = numpy.array([[1000.,10.],
+					[10.,1000.]])
 
-	kf.R = 0.005
+	kf.R = 10
 
-	kf.Q = Q_discrete_white_noise(dim=2, dt=dt*15, var=0.5)
+	kf.Q = Q_discrete_white_noise(dim=2, dt=dt*15, var=0.15)
 	# // Velocity Equation //
 
 	# // C = 2.602*(Sqrt(0.712-V)-0.846)
@@ -120,7 +120,7 @@ def kfTest(v_error,r_error, buf_size):
 	while r_filt[i-1] > 0.01 and i < samples:
 
 
-		v_meas.append(kf.x[1][0])
+		v_meas.append(ComputeVelocity(r_filt[i-2],r_filt[i-1],t[i-2],t[i-1]))
 		tau.append(ComputeTau(r_filt[i-1], v_meas[-1]))
 		a_need.append(v_meas[-1]*(1-tau_dot)/tau[-1])
 		v_need.append(v_meas[-1] + a_need[-1]*dt)
