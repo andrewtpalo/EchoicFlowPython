@@ -113,7 +113,7 @@ def efTest(v_error, r_error, buf_size):
 
 		
 
-		r.append(r[i-1] + v[i-1]*dt + 0.5*a[i-1]*(dt**2))
+		r.append(r[i-1] + v[-1]*dt)
 
 		r_meas.append(r[i] + numpy.random.normal(0,r_error))
 
@@ -144,7 +144,7 @@ def efTest(v_error, r_error, buf_size):
 
 
 		#//compute needed acceleration
-		r.append(r[i-1] + v[i-1]*dt + 0.5*a[i-1]*(dt**2))
+		r.append(r[i-1] + v[-1]*dt)
 
 		r_meas.append(r[i] + numpy.random.normal(0,r_error))
 		# kf.predict()

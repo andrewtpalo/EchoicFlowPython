@@ -93,7 +93,7 @@ def lrTest(v_error, r_error, buf_size, sizeOfBuffer):
 
 		
 
-		r.append(r[i-1] + v[i-1]*dt + 0.5*a[i-1]*(dt**2))
+		r.append(r[i-1] + v[-1]*dt )
 
 		r_meas.append(r[i] + numpy.random.normal(0.0,r_error))
 		r_filt.append(r_meas[i])
@@ -124,7 +124,7 @@ def lrTest(v_error, r_error, buf_size, sizeOfBuffer):
 
 
 		#//compute needed acceleration
-		r.append(r[i-1] + v[i-1]*dt + 0.5*a[i-1]*(dt**2))
+		r.append(r[i-1] + v[-1]*dt)
 		r_meas.append(r[i] + numpy.random.normal(0,r_error))
 		r_buffed = r[len(r) - sizeOfBuffer:i]
 		t_buffed = t[len(r) - sizeOfBuffer:i]

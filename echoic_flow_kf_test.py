@@ -59,7 +59,7 @@ def kfTest(v_error,r_error, buf_size):
 
 	kf.R = 0.005
 
-	kf.Q = Q_discrete_white_noise(dim=2, dt=dt, var=0.13)
+	kf.Q = Q_discrete_white_noise(dim=2, dt=dt*15, var=0.5)
 	# // Velocity Equation //
 
 	# // C = 2.602*(Sqrt(0.712-V)-0.846)
@@ -105,7 +105,7 @@ def kfTest(v_error,r_error, buf_size):
 
 		
 
-		r.append(r[i-1] + v[i-1]*dt + 0.5*a[i-1]*(dt**2))
+		r.append(r[i-1] + v[-1]*dt)
 
 		r_meas.append(r[i] + numpy.random.normal(0.0,r_error))
 		r_filt.append(r_meas[i])
@@ -120,7 +120,7 @@ def kfTest(v_error,r_error, buf_size):
 	while r_filt[i-1] > 0.01 and i < samples:
 
 
-		v_meas.append(ComputeVelocity(r_filt[i-2], r_filt[i-1], t[i-2], t[i-1]))
+		v_meas.append(kf.x[1][0])
 		tau.append(ComputeTau(r_filt[i-1], v_meas[-1]))
 		a_need.append(v_meas[-1]*(1-tau_dot)/tau[-1])
 		v_need.append(v_meas[-1] + a_need[-1]*dt)
@@ -134,7 +134,7 @@ def kfTest(v_error,r_error, buf_size):
 
 
 		#//compute needed acceleration
-		r.append(r[i-1] + v[i-1]*dt + 0.5*a[i-1]*(dt**2))
+		r.append(r[i-1] + v[-1]*dt)
 
 		r_meas.append(r[i] + numpy.random.normal(0,r_error))
 		kf.predict()

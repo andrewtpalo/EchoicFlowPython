@@ -60,7 +60,7 @@ kf.H = numpy.array([[1.,0.]])
 
 kf.P *= 1000
 
-kf.R = 10
+kf.R = 0.005
 
 kf.Q = Q_discrete_white_noise(dim=2, dt=dt, var=0.13)
 # // Velocity Equation //

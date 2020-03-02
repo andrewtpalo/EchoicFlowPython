@@ -5,5 +5,7 @@ FlightGraphs/
 Justin.txt
 JustinEFTest.txt
 JustinKFTest.txt
-JustinLRTest.txt
-JustinLRTest.txt
+echoic_flow_test.pyc
+ContinuousDataEFTest.txt
+echoic_flow_kf_test.pyc
+data_export.pyc
