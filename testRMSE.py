@@ -15,17 +15,17 @@ lrUnder10 = 0
 kfUnder10 = 0
 noFiltUnder10 = 0
 for i in range(0,n):
-    test = echoic_flow_lr_test.lrTest(0.05, 0.0184, 30, 19)
+    test = echoic_flow_lr_test.lrTest(0.031, 0.0184, 30, 19)
     bestLR = min(bestLR, test)
     if test < .1:
         lrUnder10 = lrUnder10 + 1
     rmseLR.append(test)
-    test = echoic_flow_kf_test.kfTest(0.05,0.0184,30)
+    test = echoic_flow_kf_test.kfTest(0.031,0.0184,30)
     rmseKF.append(test)
     bestKF = min(bestKF, test)
     if test < .1:
         kfUnder10 = kfUnder10 + 1
-    test = echoic_flow_test.efTest(0.05, 0.0184, 30)
+    test = echoic_flow_test.efTest(0.031, 0.0184, 30)
     rmseNoFilt.append(test)
     bestNoFilt = min(bestNoFilt, test)
     if test < .1:
