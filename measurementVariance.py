@@ -19,15 +19,21 @@ drone.getNDpackage(["demo","altitude"])
 r = []
 t= []
 loop = True
-
+objHeight = 100
 
 # drone.takeoff()
 # while (drone.NavData["demo"][0][2]):
 # 	time.sleep(0.1)
 # # client.takeoff(function() {
 # drone.stop()
-
+while loop:
+    if(drone.NavData["demo"][3] < objHeight):
+        drone.move(0,0,.5,0)
+    else:
+        drone.stop()
+        loop = False
 start = time.time()
+loop = True
 while loop:
 
     time.sleep(0.067)
@@ -46,7 +52,7 @@ print mean
 print measurementVar
 
 
-plt.hist(r, bins=10)
+plt.hist(r, bins=15)
 
 plt.title('Measurement Noise')
 plt.ylabel('Frequency')
