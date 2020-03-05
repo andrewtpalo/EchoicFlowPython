@@ -20,7 +20,7 @@ for i in range(0,n):
     if test < .1:
         lrUnder10 = lrUnder10 + 1
     rmseLR.append(test)
-    test = echoic_flow_kf_test.kfTest(0.031,0.0184,30)
+    test = echoic_flow_kf_test.kfTest(0.031,0.0184,30, 50)
     rmseKF.append(test)
     bestKF = min(bestKF, test)
     if test < .1:

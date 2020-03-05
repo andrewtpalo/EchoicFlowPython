@@ -26,7 +26,7 @@ def ComputeTau(r,v):
 		v = -0.001
 	return r/v
 
-def kfTest(v_error,r_error, buf_size):
+def kfTest(v_error,r_error, buf_size, R):
 	#initialization
 	r = []
 	t = []
@@ -57,7 +57,7 @@ def kfTest(v_error,r_error, buf_size):
 	kf.P = numpy.array([[1000.,10.],
 					[10.,1000.]])
 
-	kf.R = 10
+	kf.R = R
 
 	kf.Q = Q_discrete_white_noise(dim=2, dt=dt*15, var=0.15)
 	# // Velocity Equation //
